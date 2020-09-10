@@ -346,6 +346,64 @@ process_2_ms002 <- function(network, domain, prodname_ms){
     return()
 }
 
+### attempt to bundle all idw loggers (environment issues) ####
+#. handle_errors
+idw_log <- function(phase, from_env, ...){
+
+    #phase is one of "wb" (watershed boundary), "var" (variable), or
+    #   "ts" (timestep), corresponding to the phase of idw processing that
+    #   should be logged.
+    #from_env is the environment in which to look for variables passed as
+    #   positional arguments. This will usually be the parent environment of
+    #   idw_log and can be specified in the call as from_env = environment()
+    #... must contain any variables needed inside the subsection of
+    #   idw_log specified by phase.
+
+    if(! verbose) return()
+
+    #populate positional arguments in local environment
+    dots = match.call(expand.dots = FALSE)$...
+    names = vapply(dots, as.character, '')
+    vars = mget(names, inherits = TRUE)
+    thisenv = environment()
+    mapply(function(n, v) assign(n, v, envir = thisenv),
+           names,
+           vars)
+
+    #log the specified phase of idw processing
+    if(phase == 'wb'){
+
+        msg <- glue('site: {s}; {ii}/{w}',
+                    s = site_name,
+                    ii = i,
+                    w = nrow(wb))
+
+    } else if(phase == 'var'){
+
+        msg <- glue('site: {s}; var: {vv}; {jj}/{nv}',
+                    s = site_name,
+                    vv = v,
+                    jj = j,
+                    nv = nvars)
+
+    } else if(phase == 'ts'){
+
+        if(k == 1 || k %% 1000 == 0){
+            msg <- glue('timestep: {kk}/{nt}',
+                        kk = k,
+                        nt = ntimesteps)
+        }
+
+    } else {
+        stop('phase must be one of "wb", "var", "ts"')
+    }
+
+    loginfo(msg,
+            logger = logger_module)
+
+    return()
+}
+
 ### test code####
     desired_interval = '5 days'; impute_limit=30
     # saveRDS(ws_mean_precip, '~/Desktop/ws_precip_temp.rds')

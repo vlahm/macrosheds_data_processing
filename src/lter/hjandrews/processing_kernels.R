@@ -409,12 +409,12 @@ process_1_4021 <- function(network, domain, prodname_ms, site_name,
                         # SO4SCODE='c', CL='d', CLCODE='c', DOC='d', DOCCODE='c',
                         # PVOL='d', PVOLCODE='c', ANCA='d', ANCACODE='c'))) %>%
 
-    ue(identify_detection_limit_t(d,
-                                  network = network,
-                                  domain = domain))
-
     d <- ue(sourceflags_to_ms_status(d,
                                      flagstatus_mappings = list(TYPE = 'F')))
+
+    d <- ue(carry_uncertainty(d,
+                              network = network,
+                              domain = domain))
 
     d <- d %>%
         mutate(ms_status = as.logical(ms_status)) %>%
@@ -428,7 +428,6 @@ process_1_4021 <- function(network, domain, prodname_ms, site_name,
 
     d[is.na(d)] = NA
 
-    #constant interval
     d <- ue(synchronize_timestep(ms_df = d,
                                  desired_interval = '1 day', #set back to '15 min' when we have server
                                  impute_limit = 30))

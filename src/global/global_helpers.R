@@ -74,6 +74,12 @@ assign('err_cnt', 0, envir=.GlobalEnv)
 assign('unique_errors', c(), envir=.GlobalEnv)
 assign('unique_exceptions', c(), envir=.GlobalEnv)
 
+#exports from an attempt to use socket cluster parallelization;
+# idw_pkg_export <- c('logging', 'errors', 'jsonlite', 'plyr',
+#                     'tidyverse', 'lubridate', 'feather', 'glue',
+#                     'emayili', 'tinsel', 'imputeTS')
+# idw_var_export <- c('logger_module', 'err_cnt')
+
 #these are column names that are in every non-spatial macrosheds dataset by the
 #time it reaches its final formatted/cleaned state. we sometimes want to ignore
 #these columns when operating on ms tibbles/feathers. this list may also grow.
@@ -1358,6 +1364,7 @@ calc_inst_flux <- function(chemprod, qprod, site_name){#, dt_round_interv,
     #     group_by(datetime) %>%
     #     summarize_all(~ if(is.numeric(.)) mean(., na.rm=TRUE) else any(.)) %>%
     #     ungroup()
+    # chem = manufacture_uncert_msdf(chem)
 
     # detlims_c <- identify_detection_limit(chem)
     # ue(identify_detection_limit_t(chem,
@@ -1379,48 +1386,40 @@ calc_inst_flux <- function(chemprod, qprod, site_name){#, dt_round_interv,
     # group_by(datetime) %>%
     # summarize_all(~ if(is.numeric(.)) mean(., na.rm=TRUE) else any(.)) %>%
     # ungroup()
+    # discharge = manufacture_uncert_msdf(discharge)
 
     # discharge = manufacture_uncert_msdf(discharge)
     # chem = manufacture_uncert_msdf(chem)
     # discharge = filter(discharge, datetime < as.POSIXct('1980-01-01'))
     # chem = filter(chem, datetime < as.POSIXct('1980-01-01'))
 
-    #INCORPORATE ROWWISE HERE TO SOLVE THE NUMERIC_ANY ISSUE (AND RESULTING
-    #MS_STATUS ISSUE)
-    # save.image('~/Desktop/fluxdev20200827.rda')
-    #HERE (and just above)
-    load('~/Desktop/fluxdev20200827.rda')
-
     flux <- chem %>%
         full_join(discharge,
                   by = 'datetime') %>%
-        rowwise(one_of('ms_status.x', 'ms_status.y')) %>%
-        mutate(
-            xxx = ), numeric_any))
-        mutate(
-            ms_status = numeric_any(across(vars(ms_status.x, ms_status.y)))),
-            # ms_status = numeric_any(c(ms_status.x, ms_status.y)),
-            ms_interp = numeric_any(c(ms_interp.x, ms_interp.y))) %>%
-        select(-ms_status.x, -ms_status.y, -ms_interp.x, -ms_interp.y) %>%
-        # full_join(fulldt,
-        #           by='datetime') %>%
-        arrange(datetime) %>%
         select_if(~(! all(is.na(.)))) %>%
-        # mutate_at(vars(-datetime, -ms_status),
-        #           imputeTS::na_interpolation,
-        #           maxgap = impute_limit) %>%
+        rowwise(datetime) %>%
+        mutate(
+            ms_interp = numeric_any(c_across(c(ms_interp.x, ms_interp.y))),
+            ms_status = numeric_any(c_across(c(ms_status.x, ms_status.y)))) %>%
+        ungroup() %>%
+        select(-ms_status.x, -ms_status.y, -ms_interp.x, -ms_interp.y) %>%
         mutate_at(vars(-datetime, -!!sym(qvar), -ms_status, -ms_interp),
                   ~(. * !!sym(qvar))) %>%
-        mutate(site_name = !!(site_name)) %>%
         select(-!!sym(qvar)) %>%
-        filter_at(vars(-site_name, -datetime, -ms_status, -ms_interp),
+        mutate(site_name = !!(site_name)) %>%
+        # filter_at(vars(-site_name, -datetime, -ms_status, -ms_interp),
+        filter_at(vars(-any_of(ms_canonicals)),
                   any_vars(! is.na(.))) %>%
+        arrange(datetime) %>%
         select(datetime, site_name, everything()) %>%
         relocate(ms_status, .after = last_col()) %>%
         relocate(ms_interp, .after = last_col())
 
-    # flux <- apply_detection_limit(flux, detlims_c)
+    # qq = identify_detection_limit_s(flux)
+    # identify_detection_limit_t(flux, network, domain)
+    # jj <- ue(apply_detection_limit_t(flux, network, domain))
     flux <- ue(apply_detection_limit_t(flux, network, domain))
+    # identify_detection_limit_s(jj)
 
     return(flux)
 }
@@ -1526,7 +1525,7 @@ reconstitute_raster <- function(x, template){
 #. handle_errors
 shortcut_idw <- function(encompassing_dem, wshd_bnd, data_locations,
                          data_values, stream_site_name, output_varname,
-                         elev_agnostic = FALSE){
+                         elev_agnostic = FALSE, verbose = FALSE){
 
     #encompassing_dem must cover the area of wshd_bnd and precip_gauges
     #wshd_bnd is an sf object with columns site_name and geometry
@@ -1574,13 +1573,20 @@ shortcut_idw <- function(encompassing_dem, wshd_bnd, data_locations,
     ntimesteps <- nrow(data_matrix)
     for(k in 1:ntimesteps){
 
-        if(k %% 1000 == 0){
-            msg <- glue('giant loop: {kk}/{nt}',
-                kk = k,
-                nt = ntimesteps)
-            loginfo(msg,
-                logger = logger_module)
-        }
+        idw_log_timestep(verbose = verbose,
+                         site_name = stream_site_name,
+                         v = output_varname,
+                         k = k,
+                         ntimesteps = ntimesteps)
+        # if(verbose){
+        #     if(k %% 1000 == 0){
+        #         msg <- glue('giant loop: {kk}/{nt}',
+        #             kk = k,
+        #             nt = ntimesteps)
+        #         loginfo(msg,
+        #             logger = logger_module)
+        #     }
+        # }
 
         #assign cell weights as normalized inverse squared distances
         dk <- t(data_matrix[k, , drop = FALSE])
@@ -1635,7 +1641,8 @@ shortcut_idw <- function(encompassing_dem, wshd_bnd, data_locations,
 
 #. handle_errors
 shortcut_idw_concflux <- function(encompassing_dem, wshd_bnd, data_locations,
-                                  precip_values, chem_values, stream_site_name){
+                                  precip_values, chem_values, stream_site_name,
+                                  verbose = FALSE){
 
     #this function is similar to shortcut_idw, but when it gets to the
     #vectorized raster stage, it multiplies precip chem by precip volume
@@ -1723,13 +1730,20 @@ shortcut_idw_concflux <- function(encompassing_dem, wshd_bnd, data_locations,
     ws_mean_conc <- ws_mean_flux <- rep(NA, ntimesteps)
     for(k in 1:ntimesteps){
 
-        if(k %% 1000 == 0){
-            msg <- glue('giant loop: {kk}/{nt}',
-                kk = k,
-                nt = ntimesteps)
-            loginfo(msg,
-                logger = logger_module)
-        }
+        idw_log_timestep(verbose = verbose,
+                         site_name = stream_site_name,
+                         v = '      ',
+                         k = k,
+                         ntimesteps = ntimesteps)
+        # if(verbose){
+        #     if(k %% 1000 == 0){
+        #         msg <- glue('giant loop: {kk}/{nt}',
+        #             kk = k,
+        #             nt = ntimesteps)
+        #         loginfo(msg,
+        #             logger = logger_module)
+        #     }
+        # }
 
         #assign cell weights as normalized inverse squared distances (p)
         pk <- t(p_matrix[k, , drop = FALSE])
@@ -1905,8 +1919,109 @@ recursive_tracker_update <- function(l, elem_name, new_val){
 }
 
 #. handle_errors
+ms_parallelize <- function(maxcores = Inf){
+
+    #maxcores is the maximum number of processor cores to use for R tasks.
+    #   you may want to leave a few aside for other processes.
+
+    #value: a cluster object. you'll need this to return to serial mode and
+    #   free up the cores that were employed by R. Be sure to run
+    #parallel::stopCluster(<cluster object>) after the parallel tasks are complete.
+
+    #be sure to call
+
+    #we need to find a way to protect some cores for serving the portal
+    #if we end up processing data and serving the portal on the same
+    #machine/cluster. we can use taskset to assign the shiny process
+    #to 1-3 cores and this process to any others.
+
+    ncores <- min(parallel::detectCores(), maxcores)
+
+    if(.Platform$OS.type == 'windows'){
+        clst <- parallel::makeCluster(ncores, type = 'PSOCK')
+    } else {
+        clst <- parallel::makeCluster(ncores, type = 'FORK')
+    }
+
+    doParallel::registerDoParallel(clst)
+
+    return(clst)
+}
+
+#. handle_errors
+idw_parallel_combine <- function(d1, d2){
+
+    #this is for use with foreach loops inside the 3 idw prep functions
+    #   (precip_idw, pchem_idw, flux_idw)
+
+    if(is.character(d1) && d1 == 'first iter') return(d2)
+
+    ms_status <- bitwOr(d1$ms_status, d2$ms_status)
+    ms_interp <- bitwOr(d1$ms_interp, d2$ms_interp)
+
+    d_comb <- bind_cols(d1[, 1:(ncol(d1) - 2)],
+                        d2[, 3, drop = FALSE],
+                        tibble(ms_status = ms_status),
+                        tibble(ms_interp = ms_interp))
+
+    return(d_comb)
+}
+
+#. handle_errors
+idw_log_wb <- function(verbose, site_name, i, nw){
+
+    if(! verbose) return()
+
+    msg <- glue('site: {s} ({ii}/{w})',
+                s = site_name,
+                ii = i,
+                w = nw)
+
+    loginfo(msg,
+            logger = logger_module)
+
+    return()
+}
+
+#. handle_errors
+idw_log_var <- function(verbose, site_name, v, j, nvars){
+
+    if(! verbose) return()
+
+    msg <- glue('site: {s} (_/__); var: {vv} ({jj}/{nv})',
+                s = site_name,
+                vv = v,
+                jj = j,
+                nv = nvars)
+
+    loginfo(msg,
+            logger = logger_module)
+
+    return()
+}
+
+#. handle_errors
+idw_log_timestep <- function(verbose, site_name=NULL, v, k, ntimesteps){
+
+    if(! verbose) return()
+
+    if(k == 1 || k %% 1000 == 0){
+        msg <- glue('site: {s} (_/__); var: {vv} (_/__); timestep: ({kk}/{nt})',
+                    s = site_name,
+                    vv = v,
+                    kk = k,
+                    nt = ntimesteps)
+
+        loginfo(msg,
+                logger = logger_module)
+    }
+
+    return()
+}
+
+#. handle_errors
 precip_idw <- function(precip_prodname, wb_prodname, pgauge_prodname,
-                       precip_prodname_out){
+                       precip_prodname_out, verbose = TRUE){
 
     #load precip data, watershed boundaries, rain gauge locations
     precip <- read_combine_feathers(network = network,
@@ -1986,26 +2101,36 @@ precip_idw <- function(precip_prodname, wb_prodname, pgauge_prodname,
     clst <- ms_parallelize()
 
     #interpolate precipitation volume and write watershed averages
-    catchout <- foreach::foreach(j = 1:nrow(wb)) %dopar% {
+    catchout <- foreach::foreach(i = 1:nrow(wb)) %dopar% {
     # for(j in 1:nrow(wb)){
 
-        wbj <- slice(wb, j)
-        site_name <- wbj$site_name
+        wbi <- slice(wb, i)
+        site_name <- wbi$site_name
 
-        msg <- glue('site: {s}; {jj}/{w}',
-            s = site_name,
-            jj = j,
-            w = nrow(wb))
-        loginfo(msg,
-            logger = logger_module)
+        idw_log_wb(verbose = verbose,
+                   site_name = site_name,
+                   i = i,
+                   nw = nrow(wb))
+        # idw_log(phase = 'wb',
+        #         from_env = environment(),
+        #         verbose, site_name, i, wb)
+        # if(verbose){
+        #     msg <- glue('site: {s}; {jj}/{w}',
+        #         s = site_name,
+        #         jj = j,
+        #         w = nrow(wb))
+        #     loginfo(msg,
+        #         logger = logger_module)
+        # }
 
         ws_mean_precip <- shortcut_idw(encompassing_dem = dem,
-                                       wshd_bnd = wbj,
+                                       wshd_bnd = wbi,
                                        data_locations = rg,
                                        data_values = precip,
                                        stream_site_name = site_name,
                                        output_varname = 'precip',
-                                       elev_agnostic = FALSE)
+                                       elev_agnostic = FALSE,
+                                       verbose = verbose)
 
         ws_mean_precip$precip <- apply_detection_limit_s(ws_mean_precip$precip,
                                                         detlim)
@@ -2026,40 +2151,9 @@ precip_idw <- function(precip_prodname, wb_prodname, pgauge_prodname,
     return()
 }
 
-
-#. handle_errors
-ms_parallelize <- function(maxcores = Inf){
-
-    #maxcores is the maximum number of processor cores to use for R tasks.
-    #   you may want to leave a few aside for other processes.
-
-    #value: a cluster object. you'll need this to return to serial mode and
-    #   free up the cores that were employed by R. Be sure to run
-    #parallel::stopCluster(<cluster object>) after the parallel tasks are complete.
-
-    #be sure to call
-
-    #we need to find a way to protect some cores for serving the portal
-    #if we end up processing data and serving the portal on the same
-    #machine/cluster. we can use taskset to assign the shiny process
-    #to 1-3 cores and this process to any others.
-
-    ncores <- min(parallel::detectCores(), maxcores)
-
-    if(.Platform$OS.type == 'windows'){
-        clst <- parallel::makeCluster(ncores, type = 'PSOCK')
-    } else {
-        clst <- parallel::makeCluster(ncores, type = 'FORK')
-    }
-
-    doParallel::registerDoParallel(clst)
-
-    return(clst)
-}
-
 #. handle_errors
 pchem_idw <- function(pchem_prodname, precip_prodname, wb_prodname,
-                      pgauge_prodname, pchem_prodname_out){
+                      pgauge_prodname, pchem_prodname_out, verbose = TRUE){
 
     #load watershed boundaries, rain gauge locations, precip and pchem data
     wb <- read_combine_shapefiles(network = network,
@@ -2119,7 +2213,7 @@ pchem_idw <- function(pchem_prodname, precip_prodname, wb_prodname,
                                   -ms_interp))
     # -one_of(flux_vars))))
 
-    #this avoids a lot of slow summarizing
+    #this avoids a lot of slow summarizing (IGNORES SITE!)
     status_cols <- pchem %>%
         select(datetime, ms_status, ms_interp) %>%
         group_by(datetime) %>%
@@ -2157,65 +2251,91 @@ pchem_idw <- function(pchem_prodname, precip_prodname, wb_prodname,
     }
 
     clst <- ms_parallelize()
+    # clst <- parallel::makeCluster(4, type = 'PSOCK')
+    # doParallel::registerDoParallel(clst)
 
     #send vars into regular idw interpolator WITHOUT precip, one at a time;
     #combine and write outputs by site
-    catchout <- foreach::foreach(i = 1:nrow(wb)) %dopar% {
-    # for(i in 1:nrow(wb)){
+    # catchout <- foreach::foreach(i = 1:nrow(wb)) %:% {
+    # pchem_setlist = lapply(pchem_setlist, function(x) x[1:4,])
+    # pchem_setlist = pchem_setlist[1:8]
+    # nvars = length(pchem_setlist)
+    # pchem_setlist = lapply(pchem_setlist, manufacture_uncert_msdf)
+    # verbose = TRUE
+    for(i in 1:nrow(wb)){
 
-        wbj <- slice(wb, i)
-        site_name <- wbj$site_name
+        wbi <- slice(wb, i)
+        site_name <- wbi$site_name
 
-        msg <- glue('site: {s}; {ii}/{w}',
-            s = site_name,
-            ii = i,
-            w = nrow(wb))
-        loginfo(msg,
-            logger = logger_module)
+        idw_log_wb(verbose = verbose,
+                   site_name = site_name,
+                   i = i,
+                   nw = nrow(wb))
 
-        ws_mean_d <- tibble()
-        for(j in 1:nvars){
+        ws_mean_d <- foreach::foreach(j = 1:nvars,
+                                      .combine = idw_parallel_combine,
+                                      .init = 'first iter') %dopar% {
+                                      # .packages = idw_pkg_export,
+                                      # .export = idw_var_export,
+                                      # .errorhandling = 'remove',
+                                      # .verbose = TRUE) %dopar% {
+
+        # for(j in 1:nvars){q
 
             v <- pchem_vars[j]
 
-            msg <- glue('site: {s}; var: {vv}; {jj}/{nv}',
-                s = site_name,
-                vv = v,
-                jj = j,
-                nv = nvars)
-            loginfo(msg,
-                logger = logger_module)
+            # idw_log(phase = 'var')
+            # idw_log(phase = 'var',
+            #         from_env = environment(),
+            #         verbose, site_name, v, j, nvars)
+            idw_log_var(verbose = verbose,
+                        site_name = site_name,
+                        v = v,
+                        j = j,
+                        nvars = nvars)
+            # if(verbose){
+            #     msg <- glue('site: {s}; var: {vv}; {jj}/{nv}',
+            #         s = site_name,
+            #         vv = v,
+            #         jj = j,
+            #         nv = nvars)
+            #     loginfo(msg,
+            #         logger = logger_module)
+            # }
 
-            ws_mean <- shortcut_idw(encompassing_dem = dem,
-                                    wshd_bnd = wbj,
-                                    data_locations = rg,
-                                    data_values = pchem_setlist[[j]],
-                                    stream_site_name = site_name,
-                                    output_varname = v,
-                                    elev_agnostic = TRUE)
+            # ws_mean <- shortcut_idw(encompassing_dem = dem,
+            shortcut_idw(encompassing_dem = dem,
+                         wshd_bnd = wbi,
+                         data_locations = rg,
+                         data_values = pchem_setlist[[j]],
+                         stream_site_name = site_name,
+                         output_varname = v,
+                         elev_agnostic = TRUE,
+                         verbose = verbose)
+         }
 
-            if(j == 1){
-                datetime_out <- select(ws_mean, datetime)
-                site_name_out <- select(ws_mean, site_name)
-                ms_status_out <- ws_mean$ms_status
-                ms_interp_out <- ws_mean$ms_interp
+        #     if(j == 1){
+        #         datetime_out <- select(ws_mean, datetime)
+        #         site_name_out <- select(ws_mean, site_name)
+        #         ms_status_out <- ws_mean$ms_status
+        #         ms_interp_out <- ws_mean$ms_interp
+        #
+        #         ws_mean_d <- ws_mean %>%
+        #             select(!!v)
+        #     } else {
+        #         ws_mean_d <- ws_mean %>%
+        #             select(!!v) %>%
+        #             bind_cols(ws_mean_d)
+        #     }
+        #
+        #     ms_status_out <- bitwOr(ws_mean$ms_status, ms_status_out)
+        #     ms_interp_out <- bitwOr(ws_mean$ms_interp, ms_interp_out)
+        # }
 
-                ws_mean_d <- ws_mean %>%
-                    select(!!v)
-            } else {
-                ws_mean_d <- ws_mean %>%
-                    select(!!v) %>%
-                    bind_cols(ws_mean_d)
-            }
-
-            ms_status_out <- bitwOr(ws_mean$ms_status, ms_status_out)
-            ms_interp_out <- bitwOr(ws_mean$ms_interp, ms_interp_out)
-        }
-
-        #reassemble tibbles
-        ws_mean_d <- bind_cols(datetime_out, site_name_out, ws_mean_d)
-        ws_mean_d$ms_status <- ms_status_out
-        ws_mean_d$ms_interp <- ms_interp_out
+        # #reassemble tibbles
+        # ws_mean_d <- bind_cols(datetime_out, site_name_out, ws_mean_d)
+        # ws_mean_d$ms_status <- ms_status_out
+        # ws_mean_d$ms_interp <- ms_interp_out
 
         if(any(is.na(ws_mean_d$datetime))){
             stop('NA datetime found in ws_mean_d')
@@ -2223,13 +2343,13 @@ pchem_idw <- function(pchem_prodname, precip_prodname, wb_prodname,
 
         ws_mean_d <- apply_detection_limit_s(ws_mean_d, detlims)
 
-        msg <- glue('{w}, {n}, {d}, {p}',
-            w = nrow(ws_mean_d),
-            n = network,
-            d = domain,
-            p = prodname_ms)
-        loginfo(msg,
-            logger = logger_module)
+        # msg <- glue('{w}, {n}, {d}, {p}',
+        #     w = nrow(ws_mean_d),
+        #     n = network,
+        #     d = domain,
+        #     p = prodname_ms)
+        # loginfo(msg,
+        #     logger = logger_module)
 
         write_ms_file(ws_mean_d,
                       network = network,
@@ -2248,7 +2368,7 @@ pchem_idw <- function(pchem_prodname, precip_prodname, wb_prodname,
 
 #. handle_errors
 flux_idw <- function(pchem_prodname, precip_prodname, wb_prodname,
-                     pgauge_prodname, flux_prodname_out){
+                     pgauge_prodname, flux_prodname_out, verbose = TRUE){
 
     #load watershed boundaries, rain gauge locations, precip and pchem data
     wb <- read_combine_shapefiles(network = network,
@@ -2351,66 +2471,85 @@ flux_idw <- function(pchem_prodname, precip_prodname, wb_prodname,
 
     #send vars into flux interpolator with precip, one at a time;
     #combine and write outputs by site
-    catchout <- foreach::foreach(i = 1:nrow(wb)) %dopar% {
-    # for(i in 1:nrow(wb)){
+    # catchout <- foreach::foreach(i = 1:nrow(wb)) %dopar% {
+    for(i in 1:nrow(wb)){
 
-        wbj <- slice(wb, i)
-        site_name <- wbj$site_name
+        wbi <- slice(wb, i)
+        site_name <- wbi$site_name
 
-        msg <- glue('site: {s}; {ii}/{w}',
-            s = site_name,
-            ii = i,
-            w = nrow(wb))
-        loginfo(msg,
-            logger = logger_module)
+        idw_log_wb(verbose = verbose,
+                   site_name = site_name,
+                   i = i,
+                   nw = nrow(wb))
+        # if(verbose){
+        #     msg <- glue('site: {s}; {ii}/{w}',
+        #         s = site_name,
+        #         ii = i,
+        #         w = nrow(wb))
+        #     loginfo(msg,
+        #         logger = logger_module)
+        # }
 
-        for(j in 1:nvars_fluxable){
+        ws_mean_flux <- foreach::foreach(j = 1:nvars_fluxable,
+                                         .combine = idw_parallel_combine,
+                                         .init = 'first iter') %dopar% {
+                                         # .packages = idw_pkg_export,
+                                         # .export = idw_var_export) %dopar% {
+        # for(j in 1:nvars_fluxable){
 
             v <- pchem_vars_fluxable[j]
 
-            ws_means <- shortcut_idw_concflux(encompassing_dem = dem,
-                                              wshd_bnd = wbj,
-                                              data_locations = rg,
-                                              precip_values = precip,
-                                              chem_values = pchem_setlist_fluxable[[j]],
-                                              stream_site_name = site_name)
+            idw_log_var(verbose = verbose,
+                        site_name = site_name,
+                        v = v,
+                        j = j,
+                        nvars = nvars)
 
-            if(j == 1){
-                datetime_out <- select(ws_means, datetime)
-                site_name_out <- select(ws_means, site_name)
-                ms_status_out <- ws_means$ms_status
-                ms_interp_out <- ws_means$ms_interp
-
-                # ws_mean_conc <- ws_means %>%
-                #     select(concentration) %>%
-                #     rename(!!v := concentration)
-
-                ws_mean_flux <- ws_means %>%
-                    select(flux) %>%
-                    rename(!!v := flux)
-            } else {
-                # ws_mean_conc <- ws_means %>%
-                #     select(concentration) %>%
-                #     rename(!!v := concentration) %>%
-                #     bind_cols(ws_mean_conc)
-
-                ws_mean_flux <- ws_means %>%
-                    select(flux) %>%
-                    rename(!!v := flux) %>%
-                    bind_cols(ws_mean_flux)
-            }
-
-            ms_status_out <- bitwOr(ws_means$ms_status, ms_status_out)
-            ms_interp_out <- bitwOr(ws_means$ms_interp, ms_interp_out)
+            shortcut_idw_concflux(encompassing_dem = dem,
+                                  wshd_bnd = wbi,
+                                  data_locations = rg,
+                                  precip_values = precip,
+                                  chem_values = pchem_setlist_fluxable[[j]],
+                                  stream_site_name = site_name,
+                                  verbose = verbose)
         }
 
-        #reassemble tibbles
-        # ws_mean_conc <- bind_cols(datetime_out, site_name_out, ws_mean_conc)
-        ws_mean_flux <- bind_cols(datetime_out, site_name_out, ws_mean_flux)
-        ws_mean_flux$ms_status <- ms_status_out
-        ws_mean_flux$ms_interp <- ms_interp_out
-        # ws_mean_conc$ms_status <- ws_mean_flux$ms_status <- ms_status_out
-        # ws_mean_conc$ms_interp <- ws_mean_flux$ms_interp <- ms_interp_out
+        #     if(j == 1){
+        #         datetime_out <- select(ws_means, datetime)
+        #         site_name_out <- select(ws_means, site_name)
+        #         ms_status_out <- ws_means$ms_status
+        #         ms_interp_out <- ws_means$ms_interp
+        #
+        #         # ws_mean_conc <- ws_means %>%
+        #         #     select(concentration) %>%
+        #         #     rename(!!v := concentration)
+        #
+        #         ws_mean_flux <- ws_means %>%
+        #             select(flux) %>%
+        #             rename(!!v := flux)
+        #     } else {
+        #         # ws_mean_conc <- ws_means %>%
+        #         #     select(concentration) %>%
+        #         #     rename(!!v := concentration) %>%
+        #         #     bind_cols(ws_mean_conc)
+        #
+        #         ws_mean_flux <- ws_means %>%
+        #             select(flux) %>%
+        #             rename(!!v := flux) %>%
+        #             bind_cols(ws_mean_flux)
+        #     }
+        #
+        #     ms_status_out <- bitwOr(ws_means$ms_status, ms_status_out)
+        #     ms_interp_out <- bitwOr(ws_means$ms_interp, ms_interp_out)
+        # }
+        #
+        # #reassemble tibbles
+        # # ws_mean_conc <- bind_cols(datetime_out, site_name_out, ws_mean_conc)
+        # ws_mean_flux <- bind_cols(datetime_out, site_name_out, ws_mean_flux)
+        # ws_mean_flux$ms_status <- ms_status_out
+        # ws_mean_flux$ms_interp <- ms_interp_out
+        # # ws_mean_conc$ms_status <- ws_mean_flux$ms_status <- ms_status_out
+        # # ws_mean_conc$ms_interp <- ws_mean_flux$ms_interp <- ms_interp_out
 
         # if(any(is.na(ws_mean_conc$datetime))){
         #     stop('NA datetime found in ws_mean_conc')
@@ -3185,6 +3324,11 @@ apply_detection_limit_t <- function(X, network, domain){
         #                       lim=c(1, 2))
         # z = site_lst[[1]]
 
+        Xerr <- lapply(X = site_lst,
+                       FUN = function(z) errors(z$x)) %>%
+            unlist() %>%
+            unname()
+
         rounded <- lapply(X = site_lst,
                           FUN = function(z){
 
@@ -3215,6 +3359,8 @@ apply_detection_limit_t <- function(X, network, domain){
                           }) %>%
             unlist() %>%
             unname()
+
+        errors(rounded) <- Xerr
 
         return(rounded)
     }
