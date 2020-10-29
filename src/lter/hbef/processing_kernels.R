@@ -224,7 +224,10 @@ process_1_13 <- function(network, domain, prodname_ms, site_name,
 process_1_208 <- function(network, domain, prodname_ms, site_name,
     component){
 
-    if(component == 'Analytical Methods') return()
+    if(component == 'Analytical Methods'){
+        loginfo('Blacklisting superfluous data component')
+        return(generate_blacklist_indicator())
+    }
 
     rawfile <- glue('data/{n}/{d}/raw/{p}/{s}/{c}.csv',
                     n = network,

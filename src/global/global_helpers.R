@@ -1497,11 +1497,12 @@ ms_conversions <- function(d,
                       paste(miss, collapse = ', ')))
         }
 
-        for(m in convert_molecules){
-            d$val[vars == m] <- convert_molecule(x = d$val[vars == m],
-                                                 from = m,
-                                                 to = unname(molecular_conversion_map[m]))
-        }
+    }
+
+    for(m in convert_molecules){
+        d$val[vars == m] <- convert_molecule(x = d$val[vars == m],
+                                             from = m,
+                                             to = unname(molecular_conversion_map[m]))
     }
 
     #Convert to mol or eq if that is the output unit
@@ -3390,7 +3391,7 @@ write_ms_file <- function(d, network, domain, prodname_ms, site_name,
     #file from the portal repository, which is assumed to be a sibling of the
     #data_acquision directory and to be named "portal".
 
-    if(! link_to_portal){
+    if(link_to_portal){
         stop("we're not linking to portal this way anymore. see create_portal_links()")
     }
 

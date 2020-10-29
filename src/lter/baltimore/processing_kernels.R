@@ -474,7 +474,7 @@ process_2_ms003 <- function(network, domain, prodname_ms){
 
   for(s in flux_sites){
 
-    flux <- sw(calc_inst_flux(chemprod = chemprod
+    flux <- sw(calc_inst_flux(chemprod = chemprod,
                               qprod = qprod,
                               level = 'derived',
                               site_name = s))

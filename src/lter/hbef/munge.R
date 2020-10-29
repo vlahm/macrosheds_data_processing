@@ -6,7 +6,7 @@ prod_info <- get_product_info(network = network,
                               status_level = 'munge',
                               get_statuses = 'ready')
 
-# i=1
+# i=5
 for(i in 1:nrow(prod_info)){
 
     prodname_ms <- paste0(prod_info$prodname[i], '__', prod_info$prodcode[i])
@@ -67,15 +67,6 @@ for(i in 1:nrow(prod_info)){
                                   site_name = site_name,
                                   new_status = 'error')
         } else {
-
-           # if(! is.na(prod_info$derive_status[i])){
-           #     update_data_tracker_d(network = network,
-           #                           domain = domain,
-           #                           tracker_name = 'held_data',
-           #                           prodname_ms = prodname_ms,
-           #                           site_name = site_name,
-           #                           new_status = 'pending')
-           # }
 
             invalidate_derived_products(successor_string = prod_info$precursor_of)
         }
