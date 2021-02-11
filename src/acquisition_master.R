@@ -168,14 +168,14 @@ googlesheets4::gs4_auth(path = 'googlesheet_service_accnt.json')
 #read in secrets
 conf <- jsonlite::fromJSON('config.json')
 
-#connect rgee to earth engine and python
-gee_login <- case_when(
-    ms_instance$which_machine %in% c('Mike', 'BM1') ~ conf$gee_login_mike,
-    ms_instance$which_machine %in% c('Spencer', 'BM0') ~ conf$gee_login_spencer,
-    TRUE ~ 'UNKNOWN')
+# #connect rgee to earth engine and python
+# gee_login <- case_when(
+#     ms_instance$which_machine %in% c('Mike', 'BM1') ~ conf$gee_login_mike,
+#     ms_instance$which_machine %in% c('Spencer', 'BM0') ~ conf$gee_login_spencer,
+#     TRUE ~ 'UNKNOWN')
 
-try(rgee::ee_Initialize(email = conf[[gee_login]],
-                        drive = TRUE))
+# try(rgee::ee_Initialize(email = conf[[gee_login]],
+#                         drive = TRUE))
 
 #set up global logger. network-domain loggers are set up later
 logging::basicConfig()
@@ -203,8 +203,9 @@ ms_globals <- c(ls(all.names=TRUE), 'ms_globals')
 
 dir.create('logs', showWarnings = FALSE)
 
-# dmnrow=13
-for(dmnrow in 1:nrow(network_domain)){
+# dmnrow=3
+# for(dmnrow in 1:nrow(network_domain)){
+for(dmnrow in 6){
     # drop_automated_entries('.') #use with caution!
 
     network <- network_domain$network[dmnrow]
@@ -240,8 +241,8 @@ for(dmnrow in 1:nrow(network_domain)){
                     verbose = TRUE))
     ms_derive(network = network,
               domain = domain)
-    ms_general(network = network,
-               domain = domain)
+    # ms_general(network = network,
+    #            domain = domain)
 
     retain_ms_globals(ms_globals)
 }
