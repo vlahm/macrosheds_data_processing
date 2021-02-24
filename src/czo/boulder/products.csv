@@ -10,8 +10,8 @@ prodcode,prodname,retrieve_status,munge_status,derive_status,precursor_of,notes,
 ms001,cdnr_discharge,NA,NA,ready,discharge__ms005,NA,NA,NA
 ms002,precip_gauge_locations,NA,NA,ready,NA,NA,NA,NA
 ms003,stream_gauge_locations,NA,NA,ready,NA,NA,NA,NA
-ms004,stream_chemistry,NA,NA,ready,stream_inst_flux__ms007,NA,NA,NA
-ms005,discharge,NA,NA,ready,stream_inst_flux__ms007,NA,NA,NA
+ms004,stream_chemistry,NA,NA,ready,stream_flux_inst__ms007,NA,NA,NA
+ms005,discharge,NA,NA,ready,stream_flux_inst__ms007,NA,NA,NA
 ms007,stream_flux_inst,NA,NA,ready,NA,NA,NA,NA
 ms008,precip_pchem_pflux,NA,NA,ready,NA,NA,NA,NA
 ms000,ws_boundary,NA,NA,NA,precip_pchem_pflux__ms008,automated entry,NA,NA

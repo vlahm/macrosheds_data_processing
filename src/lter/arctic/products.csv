@@ -3,7 +3,7 @@ prodcode,prodname,retrieve_status,munge_status,derive_status,precursor_of,notes,
 10601,stream_chemistry,ready,ready,NA,stream_chemistry__ms002,NA,NA
 20118,discharge,ready,ready,NA,discharge__ms001,NA,NA
 20118,stream_chemistry,ready,ready,NA,stream_chemistry__ms002,NA,NA
-10303,stream_chemistry,ready,ready,NA,stream_chemistry__ms002,NA,1978-2017_LTER_Streams_Chemistry_v6_csv
+10303,stream_chemistry,ready,ready,NA,stream_chemistry__ms002,NA,1978-2019_LTER_Streams_Chemistry_v9_csv
 1489,precipitation,ready,ready,NA,precipitation__ms006,NA,1988_currentTFSDaily_csv
 20120,stream_chemistry,ready,ready,NA,stream_chemistry__ms002,NA,2015-2019_LTER_Streams_Roche_and_Trevor_Discharge_csv
 20120,discharge,ready,ready,NA,discharge__ms001,NA,2015-2019_LTER_Streams_Roche_and_Trevor_Discharge_csv
@@ -56,4 +56,4 @@ ms003,precip_gauge_locations,NA,NA,ready,NA,NA,NA
 ms004,stream_gauge_locations,NA,NA,ready,NA,NA,NA
 ms005,stream_flux_inst,NA,NA,ready,NA,NA,NA
 ms006,precipitation,NA,NA,ready,NA,NA,NA
-ms000,ws_boundary,NA,NA,NA,,automated entry,NA
+ms000,ws_boundary,NA,NA,NA,NA,automated entry,NA

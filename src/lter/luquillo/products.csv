@@ -1,16 +1,20 @@
 prodcode,prodname,retrieve_status,munge_status,derive_status,precursor_of,notes,components
 20,stream_chemistry,ready,ready,NA,stream_chemistry__ms003,NA,NA
-174,precip_chemistry,ready,ready,NA,precip_pchem_pflux__ms007,NA,Rain Collector-El Verde (RCEV )__|Rain Collector-Bisley (RCB)
-90,precipitation,ready,ready,NA,precip_pchem_pflux__ms007,NA,Bisley Tower I Precipitation data
-14,precipitation,ready,ready,NA,precip_pchem_pflux__ms007,NA,NA
+174,precip_chemistry,ready,ready,NA,precip_pchem_pflux__ms008,NA,Rain Collector-El Verde (RCEV )__|Rain Collector-Bisley (RCB)
+90,precipitation,ready,ready,NA,precipitation__ms007,NA,Bisley Tower I Precipitation data
+14,precipitation,ready,ready,NA,precipitation__ms007,NA,NA
 156,discharge,ready,ready,NA,discharge__ms002,NA,"Streamflow data from Bisley Quebrada 1, 2, 3, Sabana, and Puente Roto"
 156,stream_chemistry,ready,ready,NA,stream_chemistry__ms003,NA,"Daily Temperature data from Bisley Quebrada 1, 2, 3"
 182,discharge,ready,ready,NA,discharge__ms002,NA,NA
 ms001,usgs_discharge,NA,NA,ready,discharge__ms002,NA,NA
-ms002,discharge,NA,NA,ready,stream_inst_flux__ms006,NA,NA
-ms003,stream_chemistry,NA,NA,ready,stream_inst_flux__ms006,NA,NA
+ms002,discharge,NA,NA,ready,stream_flux_inst__ms006,NA,NA
+ms003,stream_chemistry,NA,NA,ready,stream_flux_inst__ms006,NA,NA
 ms004,precip_gauge_locations,NA,NA,ready,NA,NA,NA
 ms005,stream_gauge_locations,NA,NA,ready,NA,NA,NA
-ms006,stream_inst_flux,NA,NA,ready,NA,NA,NA
-ms007,precip_pchem_pflux,NA,NA,ready,NA,NA,NA
-ms000,ws_boundary,NA,NA,NA,precip_pchem_pflux__ms007,automated entry,NA
+ms006,stream_flux_inst,NA,NA,ready,NA,NA,NA
+ms007,precipitation,NA,NA,ready,precip_pchem_pflux__ms008,NA,NA
+ms008,precip_pchem_pflux,NA,NA,ready,NA,NA,NA
+ms000,ws_boundary,NA,NA,NA,precip_pchem_pflux__ms008,automated entry,NA
+ms900,precipitation,NA,NA,NA,NA,automated entry,NA
+ms901,precip_chemistry,NA,NA,NA,NA,automated entry,NA
+ms902,precip_flux_inst,NA,NA,NA,NA,automated entry,NA

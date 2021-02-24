@@ -183,6 +183,23 @@ process_0_DP1.00006 <- function(set_details, network, domain){
     return()
 }
 
+#discharge: STATUS=READY
+#. handle_errors
+process_0_DP4.00130 <- function(set_details, network, domain){
+
+    data_pile = neonUtilities::loadByProduct(set_details$prodcode_full,
+                                             site=set_details$site_name, startdate=set_details$component,
+                                             enddate=set_details$component, package='basic', check.size=FALSE)
+
+    raw_data_dest = glue('{wd}/data/{n}/{d}/raw/{p}/{s}/{c}',
+                         wd=getwd(), n=network, d=domain, p=set_details$prodname_ms,
+                         s=set_details$site_name, c=set_details$component)
+
+    serialize_list_to_dir(data_pile, raw_data_dest)
+
+    return()
+}
+
 #precip_chemistry: STATUS=READY
 #. handle_errors
 process_0_DP1.00013 <- function(set_details, network, domain){
@@ -688,6 +705,37 @@ process_1_DP1.00006 <- function(network, domain, prodname_ms, site_name,
   } else {
     if(relevant_file1 %in% rawfiles) { out_sub <- out_sub1 }
     if(relevant_file2 %in% rawfiles) { out_sub <- out_sub2 }
+  }
+
+  return(out_sub)
+
+}
+
+#discharge: STATUS=READY
+#. handle_errors
+process_1_DP4.00130 <-function(network, domain, prodname_ms, site_name,
+                                   component){
+
+  rawdir <- glue('data/{n}/{d}/raw/{p}/{s}/{c}',
+                 n=network, d=domain, p=prodname_ms, s=site_name, c=component)
+
+  rawfiles <- list.files(rawdir)
+
+  relevant_file <- 'csd_continuousDischarge.feather'
+
+  if(relevant_file %in% rawfiles) {
+
+    rawd <- read_feather(glue(rawdir, '/', relevant_file))
+
+    out_sub <- rawd %>%
+      mutate(dischargeFinalQFSciRvw = ifelse(is.na(dischargeFinalQFSciRvw), 0, dischargeFinalQFSciRvw),
+             dischargeFinalQF = ifelse(is.na(dischargeFinalQF), 0, dischargeFinalQF)) %>%
+      mutate(ms_status = ifelse(dischargeFinalQF == 1 | dischargeFinalQFSciRvw == 1,
+                                1, 0)) %>%
+      mutate(var = 'discharge') %>%
+      select(site_name = siteID, datetime = endDate, var, val = maxpostDischarge, ms_status)
+  } else {
+    return(generate_ms_exception('Missing discharge files'))
   }
 
   return(out_sub)

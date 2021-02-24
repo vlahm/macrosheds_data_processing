@@ -17,5 +17,8 @@ ms002,stream_chemistry,NA,NA,ready,stream_flux_inst_ms003,NA,NA
 ms003,stream_flux_inst,NA,NA,ready,NA,NA,NA
 ms004,precip_pchem_pflux,NA,NA,ready,NA,NA,NA
 ms000,ws_boundary,NA,NA,NA,precip_pchem_pflux__ms004,automated entry,NA
-ms005,precip_gauge_locations,NA,NA,linked,NA,automated entry,NA
-ms006,stream_gauge_locations,NA,NA,linked,NA,automated entry,NA
+ms005,precip_gauge_locations,NA,NA,ready,NA,automated entry,NA
+ms006,stream_gauge_locations,NA,NA,ready,NA,automated entry,NA
+ms900,precipitation,NA,NA,NA,NA,automated entry,NA
+ms901,precip_chemistry,NA,NA,NA,NA,automated entry,NA
+ms902,precip_flux_inst,NA,NA,NA,NA,automated entry,NA

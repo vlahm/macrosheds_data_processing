@@ -261,9 +261,14 @@ process_1_10303 <- function(network, domain, prodname_ms, site_name,
                     s = site_name,
                     c = component)
 
-    d <- read.csv(rawfile, colClasses = 'character')
+    d <- read.csv(rawfile, colClasses = 'character') %>%
+        as_tibble()
 
-    d <- d[4:nrow(d),]
+    #TODO: this product changed file formats around jan 2021. the kernel still works
+    #if we just comment this next line, but it could probably stand a thorough
+    #check (for new flag values, etc)
+
+    # d <- d[4:nrow(d),]
 
     check <- d %>%
         group_by(River, Station) %>%

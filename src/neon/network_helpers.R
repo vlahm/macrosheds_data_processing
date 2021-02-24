@@ -77,7 +77,8 @@ munge_neon_site <- function(domain, site_name, prodname_ms, tracker, silent=TRUE
                             prodname_ms == 'stream_gases__DP1.20097' ~ FALSE,
                             prodname_ms == 'stream_quality__DP1.20288' ~ TRUE,
                             prodname_ms == 'precip_chemistry__DP1.00013' ~ FALSE,
-                            prodname_ms == 'precipitation__DP1.00006' ~ TRUE)
+                            prodname_ms == 'precipitation__DP1.00006' ~ TRUE,
+                            prodname_ms == 'discharge__DP4.00130' ~ TRUE)
 
         site_names <- unique(out$site_name)
         for(y in 1:length(site_names)) {

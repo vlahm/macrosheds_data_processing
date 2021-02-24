@@ -17,3 +17,5 @@ transfer_data
 googlesheet_service_accnt.json
 data_processing.Rproj
 *.zip
+plots/diagnostic_plots_*
+all_*/

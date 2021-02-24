@@ -165,6 +165,32 @@ numeric_any <- function(num_vec){
     return(as.numeric(any(as.logical(num_vec))))
 }
 
+numeric_any_v <- function(...){ #attack of the ellipses
+
+    #...: numeric vectors of equal length. should be just 0s and 1s, but
+    #   integers other than 1 are also considered TRUE by as.logical()
+
+    #the vectorized version of numeric_any. good for stuff like:
+    #    mutate(ms_status = numeric_any(c(ms_status_x, ms_status_flow)))
+
+    #returns a single vector of the same length as arguments
+
+    #this func could be useful in global situations
+    numeric_any_positional <- function(...) numeric_any(c(...))
+
+    numeric_any_elementwise <- function(...){
+        Map(function(...) numeric_any_positional(...), ...)
+    }
+
+    out <- do.call(numeric_any_elementwise,
+                   args = list(...)) %>%
+        unlist()
+
+    if(is.null(out)) out <- numeric()
+
+    return(out)
+}
+
 gsub_v <- function(pattern, replacement_vec, x){
 
     #just like the first three arguments to gsub, except that
@@ -1951,7 +1977,9 @@ track_new_site_components <- function(tracker, prodname_ms, site_name, avail){
     retrieval_tracker = avail %>%
         filter(! component %in% retrieval_tracker$component) %>%
         select(component) %>%
-        mutate(mtime='1900-01-01', held_version='-1', status='pending') %>%
+        mutate(mtime = '1900-01-01',
+               held_version = '-1',
+               status = 'pending') %>%
         bind_rows(retrieval_tracker) %>%
         arrange(component)
 
@@ -2490,7 +2518,8 @@ ms_delineate <- function(network,
                         n = network,
                         d = domain,
                         w = ws_boundary_dir),
-                   recursive = TRUE)
+                   recursive = TRUE,
+                   showWarnings = FALSE)
     } else {
         level <- 'munged'
     }
@@ -2544,7 +2573,8 @@ ms_delineate <- function(network,
                 snap_dist = specs$snap_distance_m,
                 snap_method = specs$snap_method,
                 dem_resolution = specs$dem_resolution,
-                write_dir = site_dir)
+                write_dir = site_dir,
+                verbose = verbose)
 
             loginfo(msg = glue('Delineation complete: {n}-{d}-{s}',
                                n = network,
@@ -2824,7 +2854,7 @@ delineate_watershed_apriori <- function(lat, long, crs,
                                          z = dem_resolution,
                                          verbose = verbose)
             },
-            max_attempts = 4
+            max_attempts = 10
         )
 
         raster::writeRaster(x = dem,
@@ -2969,7 +2999,8 @@ delineate_watershed_by_specification <- function(lat,
                                                  snap_dist,
                                                  snap_method,
                                                  dem_resolution,
-                                                 write_dir){
+                                                 write_dir,
+                                                 verbose = FALSE){
 
     #lat: numeric representing latitude in decimal degrees
     #   (negative indicates southern hemisphere)
@@ -3023,7 +3054,7 @@ delineate_watershed_by_specification <- function(lat,
                                      z = dem_resolution,
                                      verbose = verbose)
         },
-        max_attempts = 4
+        max_attempts = 10
     )
 
     raster::writeRaster(x = dem,
@@ -3193,6 +3224,11 @@ ms_derive <- function(network = domain, domain){
     #   and pchem (note that both of these will usually be replaced by the
     #   new precip_pchem_pflux kernels)
 
+    if(! exists('held_data')){
+        held_data <<- get_data_tracker(network = network,
+                                       domain = domain)
+    }
+
     prods <- sm(read_csv(glue('src/{n}/{d}/products.csv',
                               n = network,
                               d = domain)))
@@ -3243,6 +3279,25 @@ ms_derive <- function(network = domain, domain){
              ! has_ms_prodcode &
              is_being_munged &
              ! is_self_precursor)
+
+    #this patch catches the case of precip/stream gauges being generated
+    #by a derive kernel (which shouldn't be linked from munge)
+    precip_gauges_derived <- any(grepl('precip_gauge_locations', prods$prodname) &
+                                     has_ms_prodcode)
+    stream_gauges_derived <- any(grepl('stream_gauge_locations', prods$prodname) &
+                                     has_ms_prodcode)
+
+    if(precip_gauges_derived){
+       not_rly_linkprod <-  which(grepl('precip_gauge_locations',
+                    prods$prodname) & ! has_ms_prodcode)
+       is_linkprod[not_rly_linkprod] <- FALSE
+    }
+
+    if(stream_gauges_derived){
+       not_rly_linkprod <-  which(grepl('stream_gauge_locations',
+                    prods$prodname) & ! has_ms_prodcode)
+       is_linkprod[not_rly_linkprod] <- FALSE
+    }
 
     # #determine which active prods need to be compiled from constituents (compprods)
     # is_compprod <- has_ms_prodcode &
@@ -3407,7 +3462,8 @@ append_to_productfile <- function(network,
                      n = network,
                      d = domain)
 
-    prods <- sm(read_csv(prodfile))
+    prods <- sm(read_csv(prodfile)) %>%
+        mutate(prodcode = as.character(prodcode))
 
     new_row <- unlist(passed_args)
 
@@ -4356,7 +4412,7 @@ delineate_watershed_nhd <- function(lat, long) {
                                          z = 12,
                                          verbose = FALSE)
             },
-            max_attempts = 4
+            max_attempts = 10
         )
 
         temp_raster <- tempfile(fileext = ".tif")
@@ -4436,9 +4492,10 @@ calc_inst_flux <- function(chemprod, qprod, site_name, ignore_pred = FALSE){
     #chemprod is the prodname_ms for stream or precip chemistry.
     #   it can be a munged or a derived product.
     #qprod is the prodname_ms for stream discharge or precip volume over time.
-    #   it can be a munged or derived product/
-    #calc_inst_flux is for apply_detection_limit_t, if FALSE (default) will use
-    #predisesors to ms input
+    #   it can be a munged or derived product.
+    #ignore_pred: logical; set to TRUE if detection limits should be retrieved
+    #   from the supplied chemprod directly, rather than its precursor. passed to
+    #   apply_detection_limit_t.
 
     if(! prodname_from_prodname_ms(qprod) %in% c('precipitation', 'discharge')){
         stop('Could not determine stream/precip')
@@ -4456,15 +4513,11 @@ calc_inst_flux <- function(chemprod, qprod, site_name, ignore_pred = FALSE){
 
     if(nrow(chem) == 0) return(NULL)
 
-    chem <- chem %>%
-        tidyr::pivot_wider(
-            names_from = 'var',
-            values_from = all_of(c('val', 'ms_status', 'ms_interp'))) %>%
-        select(datetime, starts_with(c('val', 'ms_status', 'ms_interp')))
-
-    # if(ncol(chem) == 3){
-    #     return(NULL)
-    # }
+    # chem <- chem %>%
+    #     tidyr::pivot_wider(
+    #         names_from = 'var',
+    #         values_from = all_of(c('val', 'ms_status', 'ms_interp'))) %>%
+    #     select(datetime, starts_with(c('val', 'ms_status', 'ms_interp')))
 
     daterange <- range(chem$datetime)
 
@@ -4474,62 +4527,112 @@ calc_inst_flux <- function(chemprod, qprod, site_name, ignore_pred = FALSE){
         filter(
             site_name == !!site_name,
             datetime >= !!daterange[1],
-            datetime <= !!daterange[2]) %>%
-        rename(flow = val) %>% #quick and dirty way to convert to wide
+            datetime <= !!daterange[2])# %>%
+        # rename(flow = val) %>% #quick and dirty way to convert to wide
         # rename(!!drop_var_prefix(.$var[1]) := val) %>%
-        select(-var, -site_name)
+        # select(-var, -site_name)
 
     if(nrow(flow) == 0) return(NULL)
+    flow_is_highres <- Mode(diff(as.numeric(flow$datetime))) <= 15 * 60
 
-    #a few commented remnants from the old wide-format days have been left here,
-    #because they might be instructive in other endeavors
-    flux <- chem %>%
+    chem_split <- chem %>%
+        group_by(var) %>%
+        arrange(datetime) %>%
+        dplyr::group_split() %>%
+        as.list()
 
-        #if we ever have dependency issues with fuzzyjoin functions, we should
-        #   implement a data.table rolling join. We'll just have to pop off
-        #   the uncertainty in a separate tibble, do the join, noting which
-        #   datetime series is being modified, then rejoin the uncertainty.
-        fuzzyjoin::difference_inner_join(
-            flow,
-            by = 'datetime',
-            max_dist = as.difftime(tim = '14:59',
-                                   format = '%M:%S')
-        ) %>%
-        select(-datetime.y) %>%
-        rename(datetime = datetime.x) %>%
-        select_if(~(! all(is.na(.)))) %>%
+    #could do this in parallel (using furrr or foreach), but that might
+    #incur the same OOM issues as doing it all at once in wide-format. worth trying,
+    #but only use half of the available threads
+    for(i in 1:length(chem_split)){
 
-        # rowwise(datetime) %>%
-        # mutate(
-        #     ms_interp = numeric_any(c_across(c(ms_interp.x, ms_interp.y))),
-        #     ms_status = numeric_any(c_across(c(ms_status.x, ms_status.y)))) %>%
-        # ungroup() %>%
-        # select(-ms_status.x, -ms_status.y, -ms_interp.x, -ms_interp.y) %>%
-        # mutate_at(vars(-datetime, -flow, -ms_status, -ms_interp),
-        #           ~(. * flow)) %>%
-        # pivot_longer(cols = ! c(datetime, ms_status, ms_interp),
-        #              names_pattern = '(.*)',
-        #              names_to = 'var') %>%
-        # rename(val = value) %>%
+        chem_chunk <- chem_split[[i]]
 
-        mutate(
-            across(.cols = matches(match = '^ms_status.+',
-                                   perl = TRUE),
-                   .fns = ~numeric_any(na.omit(c(.x, ms_status)))),
-            across(.cols = matches(match = '^ms_interp.+',
-                                   perl = TRUE),
-                   .fns = ~numeric_any(na.omit(c(.x, ms_interp)))),
-            across(.cols = starts_with(match = 'val_'),
-                   .fns = ~(.x * flow))) %>%
-        select(-ms_status, -ms_interp, -flow) %>%
-        pivot_longer(cols = ! datetime,
-                     names_pattern = '^(val|ms_status|ms_interp)_(.*)$',
-                     names_to = c('.value', 'var')) %>%
+        chem_is_highres <- Mode(diff(as.numeric(chem_chunk$datetime))) <= 15 * 60
 
-        filter(! is.na(val)) %>%
-        mutate(site_name = !!site_name) %>%
-        arrange(site_name, var, datetime) %>%
-        select(datetime, site_name, var, val, ms_status, ms_interp)
+        #if both chem and flow data are low resolution (grab samples),
+        #   let approxjoin_datetime match up samples with a 12-hour gap. otherwise the
+        #   gap should be 7.5 mins so that there isn't enormous duplication of
+        #   timestamps where multiple high-res values can be snapped to the
+        #   same low-res value
+        if(! chem_is_highres && ! flow_is_highres){
+            join_distance <- c('12:00:00')#, '%H:%M:%S')
+        } else {
+            join_distance <- c('7:30')#, '%M:%S')
+        }
+
+        chem_split[[i]] <- approxjoin_datetime(x = chem_chunk,
+                                               y = flow,
+                                               rollmax = join_distance,
+                                               keep_datetimes_from = 'x') %>%
+            mutate(site_name = site_name_x,
+                   var = var_x,
+                   val = val_x * val_y,
+                   ms_status = numeric_any_v(ms_status_x, ms_status_y),
+                   ms_interp = numeric_any_v(ms_interp_x, ms_interp_y)) %>%
+            select(-starts_with(c('site_name_', 'var_', 'val_',
+                                  'ms_status_', 'ms_interp_'))) %>%
+            filter(! is.na(val)) %>% #should be redundant
+            arrange(datetime)
+    }
+
+    # #a few commented remnants from the old wide-format days have been left here,
+    # #because they might be instructive in other endeavors
+    # flux <- chem %>%
+    #
+    #     #if we ever have dependency issues with fuzzyjoin functions, we should
+    #     #   implement a data.table rolling join. We'll just have to pop off
+    #     #   the uncertainty in a separate tibble, do the join, noting which
+    #     #   datetime series is being modified, then rejoin the uncertainty.
+    #     fuzzyjoin::difference_inner_join(
+    #         flow,
+    #         by = 'datetime',
+    #         max_dist = as.difftime(tim = '14:59',
+    #                                format = '%M:%S')
+    #     ) %>%
+    #     select(-datetime.y) %>%
+    #     rename(datetime = datetime.x) %>%
+    #     # group_by(datetime) %>%
+    #     # summarize(,
+    #     #           .groups = 'drop') %>%
+    #     select_if(~(! all(is.na(.)))) %>%
+    #
+    #     # rowwise(datetime) %>%
+    #     # mutate(
+    #     #     ms_interp = numeric_any(c_across(c(ms_interp.x, ms_interp.y))),
+    #     #     ms_status = numeric_any(c_across(c(ms_status.x, ms_status.y)))) %>%
+    #     # ungroup() %>%
+    #     # select(-ms_status.x, -ms_status.y, -ms_interp.x, -ms_interp.y) %>%
+    #     # mutate_at(vars(-datetime, -flow, -ms_status, -ms_interp),
+    #     #           ~(. * flow)) %>%
+    #     # pivot_longer(cols = ! c(datetime, ms_status, ms_interp),
+    #     #              names_pattern = '(.*)',
+    #     #              names_to = 'var') %>%
+    #     # rename(val = value) %>%
+    #
+    #     mutate(
+    #         across(.cols = matches(match = '^ms_status.+',
+    #                                perl = TRUE),
+    #                .fns = ~numeric_any(na.omit(c(.x, ms_status)))),
+    #         across(.cols = matches(match = '^ms_interp.+',
+    #                                perl = TRUE),
+    #                .fns = ~numeric_any(na.omit(c(.x, ms_interp)))),
+    #         across(.cols = starts_with(match = 'val_'),
+    #                .fns = ~(.x * flow))) %>%
+    #     select(-ms_status, -ms_interp, -flow) %>%
+    #     pivot_longer(cols = ! datetime,
+    #                  names_pattern = '^(val|ms_status|ms_interp)_(.*)$',
+    #                  names_to = c('.value', 'var')) %>%
+    #
+    #     filter(! is.na(val)) %>%
+    #     mutate(site_name = !!site_name) %>%
+    #     arrange(site_name, var, datetime) %>%
+    #     select(datetime, site_name, var, val, ms_status, ms_interp)
+
+    flux <- chem_split %>%
+        purrr::reduce(bind_rows) %>%
+        arrange(site_name, var, datetime)
+        # select(datetime, site_name, var, val, ms_status, ms_interp)
 
     if(nrow(flux) == 0) return(NULL)
 
@@ -4933,34 +5036,51 @@ shortcut_idw_concflux_v2 <- function(encompassing_dem,
         }
     }
 
-    #shouldn't need a rolling join here, but maybe?
-    common_dts <- base::intersect(as.character(precip_values$datetime),
-                                  as.character(chem_values$datetime))
+    precip_is_highres <- Mode(diff(as.numeric(precip_values$datetime))) <= 15 * 60
+    if(is.na(precip_is_highres)) precip_is_highres <- FALSE
+    chem_is_highres <- Mode(diff(as.numeric(chem_values$datetime))) <= 15 * 60
+    if(is.na(chem_is_highres)) chem_is_highres <- FALSE
 
-    if(length(common_dts) == 0){
+    #if both chem and precip data are low resolution (grab samples),
+    #   let approxjoin_datetime match up samples with a 12-hour gap. otherwise the
+    #   gap should be 7.5 mins so that there isn't enormous duplication of
+    #   timestamps where multiple high-res values can be snapped to the
+    #   same low-res value
+    if(! chem_is_highres && ! precip_is_highres){
+        join_distance <- c('12:00:00')
+    } else {
+        join_distance <- c('7:30')
+    }
+
+    dt_match_inds <- approxjoin_datetime(x = chem_values,
+                                         y = precip_values,
+                                         rollmax = join_distance,
+                                         indices_only = TRUE)
+
+    chem_values <- chem_values[dt_match_inds$x, ]
+    common_datetimes <- chem_values$datetime
+    # quickref_datetimes <- precip_values$datetime
+
+    if(length(common_datetimes) == 0){
         pchem_range <- range(chem_values$datetime)
         test <- filter(precip_values,
                        datetime > pchem_range[1],
                        datetime < pchem_range[2])
         if(nrow(test) > 0){
-            logging::logerror('We need to determine common_dts with a rolling join!')
+            logging::logerror('something is wrong with approxjoin_datetime')
         }
         return(tibble())
     }
 
     precip_values <- precip_values %>%
         mutate(ind = 1:n()) %>%
-        filter(as.character(datetime) %in% common_dts)
+        slice(dt_match_inds$y) %>%
+        mutate(datetime = !!common_datetimes)
 
     quickref_inds <- precip_values$ind
     precip_values$ind <- NULL
 
-    chem_values <- filter(chem_values,
-                          as.character(datetime) %in% common_dts)
-
     #matrixify input data so we can use matrix operations
-    d_dt <- precip_values$datetime
-
     p_status <- precip_values$ms_status
     p_interp <- precip_values$ms_interp
     p_matrix <- select(precip_values,
@@ -5159,7 +5279,7 @@ shortcut_idw_concflux_v2 <- function(encompassing_dem,
 
     # compare_interp_methods()
 
-    ws_means <- tibble(datetime = d_dt,
+    ws_means <- tibble(datetime = common_datetimes,
                        site_name = stream_site_name,
                        var = output_varname,
                        concentration = ws_mean_conc,
@@ -5306,8 +5426,12 @@ write_precip_quickref <- function(precip_idw_list,
                showWarnings = FALSE,
                recursive = TRUE)
 
-    chunkfile <- paste(chunkdtrange[1],
-                       chunkdtrange[2],
+    chunkfile <- paste(strftime(chunkdtrange[1],
+                                format = '%Y-%m-%d %H:%M:%S',
+                                tz = 'UTC'),
+                       strftime(chunkdtrange[2],
+                                format = '%Y-%m-%d %H:%M:%S',
+                                tz = 'UTC'),
                        sep = '_')
 
     saveRDS(object = precip_idw_list,
@@ -5372,10 +5496,10 @@ read_precip_quickref <- function(network,
         plyr::ldply(function(y){
             data.frame(startdt = y[1],
                        enddt = y[2])
-        })
+        }) %>%
+        mutate(ref_ind = 1:n())
 
-    refranges <- refranges %>%
-        # mutate(ref_ind = 1:n()) %>%
+    refranges_sel <- refranges %>%
         filter((startdt >= dtrange[1] & enddt <= dtrange[2]) |
                    (startdt < dtrange[1] & enddt >= dtrange[1]) |
                    (enddt > dtrange[2] & startdt <= dtrange[2]))
@@ -5383,16 +5507,33 @@ read_precip_quickref <- function(network,
                    # (startdt > dtrange[1] & startdt <= dtrange[2] & enddt > dtrange[2]) |
                    # (startdt < dtrange[1] & enddt < dtrange[2] & enddt >= dtrange[1]))
 
-    if(nrow(refranges) == 0){
+    if(nrow(refranges_sel) == 0){
         return(list('0' = 'NO QUICKREF AVAILABLE'))
+    }
+
+    #handle the case where an end of dtrange falls right between the start and
+    #end dates of a quickref file. this is possible because precip dates can
+    #be shifted (replaced with pchem dates) inside precip_pchem_pflux_idw2
+    ref_ind_range <- range(refranges_sel$ref_ind)
+    if(dtrange[1] < refranges_sel$startdt && ref_ind_range[1] > 1){
+        refranges_sel <- bind_rows(refranges[ref_ind_range[1] - 1, ],
+                                   refranges_sel)
+    }
+    if(dtrange[2] > refranges_sel$enddt && ref_ind_range[2] < nrow(refranges)){
+        refranges_sel <- bind_rows(refranges_sel,
+                                   refranges[ref_ind_range[2] + 1, ])
     }
 
     quickref <- list()
     # quickref_inds <- character(length = nrow(refranges))
     for(i in 1:nrow(refranges)){
 
-        fn <- paste(refranges$startdt[i],
-                    refranges$enddt[i],
+        fn <- paste(strftime(refranges$startdt[i],
+                             format = '%Y-%m-%d %H:%M:%S',
+                             tz = 'UTC'),
+                    strftime(refranges$enddt[i],
+                             format = '%Y-%m-%d %H:%M:%S',
+                             tz = 'UTC'),
                     sep = '_')
 
         qf <- readRDS(glue('{qd}/{f}',
@@ -5747,13 +5888,17 @@ ms_parallelize <- function(maxcores = Inf){
     #   free up the cores that were employed by R. Be sure to run
     #ms_unparallelize() after the parallel tasks are complete.
 
-    #be sure to call
-
     #we need to find a way to protect some cores for serving the portal
     #if we end up processing data and serving the portal on the same
     #machine/cluster. we can use taskset to assign the shiny process
     #to 1-3 cores and this process to any others.
 
+    #NOTE: this function has been updated to work with doFuture, which
+    #   supplants doParallel. doFuture allows us to dispatch jobs on a cluster
+    #   via Slurm. it might also allow us to dispatch multisession jobs on
+    #   Windows
+
+    #obsolete-ish notes:
     # #variables used inside the foreach loop on the master process will
     # #be written to the global environment, in some cases overwriting needed
     # #globals. we can set them aside in a separate environment and restore them later
@@ -5765,15 +5910,29 @@ ms_parallelize <- function(maxcores = Inf){
     #        envir = protected_environment)
 
     #then set up parallelization
+    # clst <- parallel::makeCluster(ncores)
+    clst <- NULL
     ncores <- min(parallel::detectCores(), maxcores)
 
-    if(.Platform$OS.type == 'windows'){
-        clst <- parallel::makeCluster(ncores, type = 'PSOCK')
+    if(ms_instance$which_machine == 'DCC'){
+        doFuture::registerDoFuture()
+        # future::plan(cluster, workers = clst) #might need this instead of Slurm one day
+        future::plan(future.batchtools::batchtools_slurm)
+    } else if(.Platform$OS.type == 'windows'){
+        #issues (found while testing on linux):
+        #1. inner precip logging waits till outer loop completes, then only prints to console.
+        #2. konza error that doesn't occur with FORK cluster:
+        #   task 1 failed - "task 2 failed - "unused argument (datetime_x = datetime)"
+        #3. not fully utilizing cores like FORK does
+        doFuture::registerDoFuture()
+        # clst <- parallel::makeCluster(ncores)
+        future::plan(multisession, workers = ncores)
+        # clst <- parallel::makeCluster(ncores, type = 'PSOCK')
     } else {
+        # future::plan(multicore) #can't be done from Rstudio
         clst <- parallel::makeCluster(ncores, type = 'FORK')
+        doParallel::registerDoParallel(clst)
     }
-
-    doParallel::registerDoParallel(clst)
 
     return(clst)
 }
@@ -5913,6 +6072,8 @@ get_detlim_precursors <- function(network,
         prodname <- 'precip_chemistry'
     } else if(prodname == 'precip_pchem_pflux'){
         prodname <- c('precip_chemistry', 'precipitation')
+    } else if(prodname == 'stream_flux_inst'){
+        prodname <- c('stream_chemistry', 'discharge')
     }
 
     precursors <- prods %>%
@@ -5977,7 +6138,7 @@ precip_pchem_pflux_idw <- function(pchem_prodname,
                                      expand = 200,
                                      verbose = FALSE)
         },
-        max_attempts = 4
+        max_attempts = 10
     )
 
     #add elev column to rain gauges
@@ -6105,52 +6266,91 @@ precip_pchem_pflux_idw <- function(pchem_prodname,
                                                      domain = domain,
                                                      prodname_ms = prodname_ms)
 
-        if(! precip_only && nrow(precip) > 10000){
-            nchunks <- parallel::detectCores() %/% 2
-        } else if(nrow(precip) > 17000){
-            nchunks <- parallel::detectCores() %/% 3
+        nthreads <- parallel::detectCores()
+
+        if(nrow(precip) > 500000){
+            nsuperchunks <- 3
+            nchunks <- nthreads * nsuperchunks
+        } else if(nrow(precip) > 100000){
+            nsuperchunks <- 2
+            nchunks <- nthreads * nsuperchunks
         } else {
-            nchunks <- parallel::detectCores()
+            nsuperchunks <- 1
+            nchunks <- nthreads
         }
+
+        #     nchunks <- parallel::detectCores() %/% 2
+        # } else if(nrow(precip) > 17000){
+        #     nchunks <- parallel::detectCores() %/% 3
+        # } else {
+        #     nchunks <- parallel::detectCores()
+        # }
 
         ## IDW INTERPOLATE PRECIP FOR ALL TIMESTEPS. STORE CELL VALUES
         ## SO THEY CAN BE USED FOR PFLUX INTERP
+        precip_superchunklist <- chunk_df(d = precip,
+                                          nchunks = nsuperchunks,
+                                          create_index_column = TRUE)
 
-        precip_chunklist <- chunk_df(d = precip,
-                                     nchunks = nchunks,
-                                     create_index_column = TRUE)
+        ws_mean_precip <- tibble()
+        for(s in 1:length(precip_superchunklist)){
+        # ws_mean_precip <- foreach::foreach(
+        #     s = 1:length(precip_superchunklist),
+        #     .combine = idw_parallel_combine,
+        #     .init = 'first iter') %:% {
 
-        clst <- ms_parallelize()
+            precip_superchunk <- precip_superchunklist[[s]]
 
-        ws_mean_precip <- foreach::foreach(
-            j = 1:min(nchunks, nrow(precip)),
-            .combine = idw_parallel_combine,
-            .init = 'first iter') %dopar% {
+            precip_chunklist <- chunk_df(d = precip_superchunk,
+                                         nchunks = nthreads,
+                                         create_index_column = FALSE)
 
-            idw_log_var(verbose = verbose,
-                        site_name = site_name,
-                        v = 'precipitation',
-                        j = paste('chunk', j),
-                        ntimesteps = nrow(precip_chunklist[[j]]),
-                        nvars = nchunks)
+            clst <- ms_parallelize(maxcores = nthreads)
+            # doFuture::registerDoFuture()
+            # ncores <- min(parallel::detectCores(), maxcores)
+            # clst <- parallel::makeCluster(nthreads, type='FORK')
+            # future::plan(future::multicore, workers = 48)
+            # future::plan(future::multisession, workers = 48)
 
-            foreach_return <- shortcut_idw(
-                encompassing_dem = dem,
-                wshd_bnd = wbi,
-                data_locations = rg,
-                data_values = precip_chunklist[[j]],
-                stream_site_name = site_name,
-                output_varname = 'SPECIAL CASE PRECIP',
-                save_precip_quickref = ! precip_only,
-                elev_agnostic = FALSE,
-                verbose = verbose)
+            # parallel::stopCluster(clst)
+            # fe_junk <- foreach:::.foreachGlobals
+            # rm(list = ls(name = fe_junk),
+            #    pos = fe_junk)
 
-            foreach_return
+            ws_mean_precip_chunk <- foreach::foreach(
+                j = 1:min(nthreads, nrow(precip_superchunk)),
+                .combine = idw_parallel_combine,
+                .init = 'first iter') %dopar% {
+
+                idw_log_var(verbose = verbose,
+                            site_name = site_name,
+                            v = 'precipitation',
+                            j = paste('chunk', j + (nthreads * (s - 1))),
+                            ntimesteps = nrow(precip_chunklist[[j]]),
+                            nvars = nchunks)
+
+                foreach_return <- shortcut_idw(
+                    encompassing_dem = dem,
+                    wshd_bnd = wbi,
+                    data_locations = rg,
+                    data_values = precip_chunklist[[j]],
+                    stream_site_name = site_name,
+                    output_varname = 'SPECIAL CASE PRECIP',
+                    save_precip_quickref = ! precip_only,
+                    elev_agnostic = FALSE,
+                    verbose = verbose)
+
+                foreach_return
             }
 
-        ms_unparallelize(clst)
+            ms_unparallelize(clst)
 
-        rm(precip_chunklist); gc()
+            rm(precip_chunklist); gc()
+
+            ws_mean_precip <- bind_rows(ws_mean_precip, ws_mean_precip_chunk)
+        }
+
+        rm(precip_superchunklist); gc()
 
         if(any(is.na(ws_mean_precip$datetime))){
             stop('NA datetime found in ws_mean_precip')
@@ -6217,7 +6417,7 @@ precip_pchem_pflux_idw <- function(pchem_prodname,
                             ntimesteps = ntimesteps,
                             is_fluxable = is_fluxable)
 
-                if(ntimesteps> 5000){
+                if(ntimesteps > 5000){
                     nchunks <- parallel::detectCores() %/% 2 #overkill?
                 } else {
                     nchunks <- parallel::detectCores()
@@ -6346,8 +6546,15 @@ precip_pchem_pflux_idw <- function(pchem_prodname,
 
 ms_unparallelize <- function(cluster_object){
 
+    #if cluster_object is NULL, nothing will happen
+
     # tryCatch({print(site_name)},
     #         error=function(e) print('nope'))
+
+    if(is.null(cluster_object)){
+        future::plan(future::sequential)
+        return()
+    }
 
     parallel::stopCluster(cluster_object)
 
@@ -7278,21 +7485,40 @@ read_detection_limit <- function(network, domain, prodname_ms){
 
 write_detection_limit <- function(detlim, network, domain, prodname_ms){
 
+    #NOTE: this function updated 2021-02-16, near the end of rebuilding
+    #   LTER (discovered issue with luquillo sites overwriting each other in
+    #   the detlim file). as such, it's not thoroughly tested. some stuff
+    #   that worked before might be broken now. tried to make it backward compatible though
+
     detlims_file <- glue('data/{n}/{d}/detection_limits.json',
                          n = network,
                          d = domain)
 
+    detlim_new <- detlim #better name; don't want to update every call though
+
     if(file.exists(detlims_file)){
-        x <- jsonlite::fromJSON(readr::read_file(detlims_file))
-        x[[prodname_ms]] <- detlim
+
+        detlim_stored <- jsonlite::fromJSON(readr::read_file(detlims_file))
+        if(prodname_ms %in% names(detlim_stored)){
+
+            for(v in names(detlim_new)){
+
+                site_detlims <- detlim_new[[v]]
+                for(s in names(site_detlims)){
+                    detlim_stored[[prodname_ms]][[v]][[s]] <- site_detlims[[s]]
+                }
+            }
+
+        } else {
+            detlim_stored[[prodname_ms]] <- detlim_new
+        }
+
     } else {
-        x <- list(placeholder = detlim)
-        names(x) <- prodname_ms
+        detlim_stored <- list(placeholder = detlim_new)
+        names(detlim_stored) <- prodname_ms
     }
 
-    readr::write_file(jsonlite::toJSON(x), detlims_file)
-
-    #return()
+    readr::write_file(jsonlite::toJSON(detlim_stored), detlims_file)
 }
 
 rle2 <- function(x){#, return_list = FALSE){
@@ -7901,17 +8127,39 @@ ms_write_confdata <- function(x,
             which_dataset == 'ws_delin_specs' ~ conf$delineation_gsheet)
 
         if(overwrite){
-            sm(googlesheets4::write_sheet(data = x,
-                                          ss = write_loc,
-                                          sheet = 1))
+
+            # sm(googlesheets4::write_sheet(data = x,
+            #                               ss = write_loc,
+            #                               sheet = 1))
+            catch <- expo_backoff(
+                expr = {
+                    sm(googlesheets4::write_sheet(data = x,
+                                                  ss = write_loc,
+                                                  sheet = 1))
+                },
+                max_attempts = 4
+            )
+
         } else {
-            sm(googlesheets4::sheet_append(data = x,
-                                           ss = write_loc,
-                                           sheet = 1))
+
+            catch <- expo_backoff(
+                expr = {
+                    sm(googlesheets4::sheet_append(data = x,
+                                                   ss = write_loc,
+                                                   sheet = 1))
+                },
+                max_attempts = 4
+            )
+
         }
 
-        dset <- sm(googlesheets4::read_sheet(ss = write_loc,
-                                             na = c('', 'NA')))
+        catch <- expo_backoff(
+            expr = {
+                dset <- sm(googlesheets4::read_sheet(ss = write_loc,
+                                                     na = c('', 'NA')))
+            },
+            max_attempts = 4
+        )
 
     } else if(to_where == 'local'){
 
@@ -7996,7 +8244,7 @@ derive_stream_flux <- function(network, domain, prodname_ms){
                                   qprod = disch_prodname_ms,
                                   site_name = s))
 
-        if(!is.null(flux)) {
+        if(!is.null(flux)){
 
             write_ms_file(d = flux,
                           network = network,
@@ -8005,8 +8253,8 @@ derive_stream_flux <- function(network, domain, prodname_ms){
                           site_name = s,
                           level = 'derived',
                           shapefile = FALSE)
-            }
         }
+    }
 
     return()
 }
@@ -8339,6 +8587,207 @@ calculate_flux_by_area <- function(site_data){
            ws_areas = ws_areas)
 
     setwd('../../data_acquisition/')
+}
+
+approxjoin_datetime <- function(x,
+                                y,
+                                rollmax = '7:30',
+                                keep_datetimes_from = 'x',
+                                indices_only = FALSE){
+                                #direction = 'forward'){
+
+    #x and y: macrosheds standard tibbles with only one site_name,
+    #   which must be the same in x and y. Nonstandard tibbles may also work,
+    #   so long as they have datetime columns, but the only case where we need
+    #   this for other tibbles is inside precip_pchem_pflux_idw, in which case
+    #   indices_only == TRUE, so it's not really set up for general-purpose joining
+    #rollmax: the maximum snap time for matching elements of x and y.
+    #   either '7:30' for continuous data or '12:00:00' for grab data
+    #direction [REMOVED]: either 'forward', meaning elements of x will be rolled forward
+    #   in time to match the next y, or 'backward', meaning elements of
+    #   x will be rolled back in time to reach the previous y
+    #keep_datetimes_from: string. either 'x' or 'y'. the datetime column from
+    #   the corresponding tibble will be kept, and the other will be dropped
+    #indices_only: logical. if TRUE, a join is not performed. rather,
+    #   the matching indices from each tibble are returned as a named list of vectors..
+
+    #good datasets for testing this function:
+    # x <- tribble(
+    #     ~datetime, ~site_name, ~var, ~val, ~ms_status, ~ms_interp,
+    #     '1968-10-09 04:42:00', 'GSWS10', 'GN_alk', set_errors(27.75, 1), 0, 0,
+    #     '1968-10-09 04:44:00', 'GSWS10', 'GN_alk', set_errors(21.29, 1), 0, 0,
+    #     '1968-10-09 04:47:00', 'GSWS10', 'GN_alk', set_errors(21.29, 1), 0, 0,
+    #     '1968-10-09 04:59:59', 'GSWS10', 'GN_alk', set_errors(16.04, 1), 0, 0,
+    #     '1968-10-09 05:15:01', 'GSWS10', 'GN_alk', set_errors(17.21, 1), 1, 0,
+    #     '1968-10-09 05:30:59', 'GSWS10', 'GN_alk', set_errors(16.50, 1), 0, 0) %>%
+        # mutate(datetime = as.POSIXct(datetime, tz = 'UTC'))
+    # y <- tribble(
+    #     ~datetime, ~site_name, ~var, ~val, ~ms_status, ~ms_interp,
+    #     '1968-10-09 04:00:00', 'GSWS10', 'GN_alk', set_errors(1.009, 1), 1, 0,
+    #     '1968-10-09 04:15:00', 'GSWS10', 'GN_alk', set_errors(2.009, 1), 1, 1,
+    #     '1968-10-09 04:30:00', 'GSWS10', 'GN_alk', set_errors(3.009, 1), 1, 1,
+    #     '1968-10-09 04:45:00', 'GSWS10', 'GN_alk', set_errors(4.009, 1), 1, 1,
+    #     '1968-10-09 05:00:00', 'GSWS10', 'GN_alk', set_errors(5.009, 1), 1, 1,
+    #     '1968-10-09 05:15:00', 'GSWS10', 'GN_alk', set_errors(6.009, 1), 1, 1) %>%
+    #     mutate(datetime = as.POSIXct(datetime, tz = 'UTC'))
+
+    #tests
+    if('site_name' %in% colnames(x) && length(unique(x$site_name)) > 1){
+        stop('Only one site_name allowed in x at the moment')
+    }
+    if('var' %in% colnames(x) && length(unique(drop_var_prefix(x$var))) > 1){
+        stop('Only one var allowed in x at the moment (not including prefix)')
+    }
+    if('site_name' %in% colnames(y) && length(unique(y$site_name)) > 1){
+        stop('Only one site_name allowed in y at the moment')
+    }
+    if('var' %in% colnames(y) && length(unique(drop_var_prefix(y$var))) > 1){
+        stop('Only one var allowed in y at the moment (not including prefix)')
+    }
+    if('site_name' %in% colnames(x) &&
+       'site_name' %in% colnames(y) &&
+       x$site_name[1] != y$site_name[1]) stop('x and y site_name must be the same')
+    if(! rollmax %in% c('7:30', '12:00:00')) stop('rollmax must be "7:30" or "12:00:00"')
+    # if(! direction %in% c('forward', 'backward')) stop('direction must be "forward" or "backward"')
+    if(! keep_datetimes_from %in% c('x', 'y')) stop('keep_datetimes_from must be "x" or "y"')
+    if(! 'datetime' %in% colnames(x) || ! 'datetime' %in% colnames(y)){
+        stop('both x and y must have "datetime" columns containing POSIXct values')
+    }
+    if(! is.logical(indices_only)) stop('indices_only must be a logical')
+
+    #deal with the case of x or y being a specialized "flow" tibble
+    # x_is_flowtibble <- y_is_flowtibble <- FALSE
+    # if('flow' %in% colnames(x)) x_is_flowtibble <- TRUE
+    # if('flow' %in% colnames(y)) y_is_flowtibble <- TRUE
+    # if(x_is_flowtibble && ! y_is_flowtibble){
+    #     varname <- y$var[1]
+    #     y$var = NULL
+    # } else if(y_is_flowtibble && ! x_is_flowtibble){
+    #     varname <- x$var[1]
+    #     x$var = NULL
+    # } else if(! x_is_flowtibble && ! y_is_flowtibble){
+    #     varname <- x$var[1]
+    #     x$var = NULL
+    #     y$var = NULL
+    # } else {
+    #     stop('x and y are both "flow" tibbles. There should be no need for this')
+    # }
+    # if(x_is_flowtibble) x <- rename(x, val = flow)
+    # if(y_is_flowtibble) y <- rename(y, val = flow)
+
+    #data.table doesn't work with the errors package, so error needs
+    #to be separated into its own column. also give same-name columns suffixes
+
+    if('val' %in% colnames(x)){ #crude catch for nonstandard ms tibbles (fine for now)
+        x <- x %>%
+            mutate(err = errors(val),
+                   val = errors::drop_errors(val)) %>%
+            rename_with(.fn = ~paste0(., '_x'),
+                        .cols = everything()) %>%
+                        # .cols = any_of(c('site_name', 'var', 'val',
+                        #                  'ms_status', 'ms_interp'))) %>%
+            as.data.table()
+
+        y <- y %>%
+            mutate(err = errors(val),
+                   val = errors::drop_errors(val)) %>%
+            rename_with(.fn = ~paste0(., '_y'),
+                        .cols = everything()) %>%
+            as.data.table()
+    } else {
+        x <- rename(x, datetime_x = datetime) %>% as.data.table()
+        y <- rename(y, datetime_y = datetime) %>% as.data.table()
+    }
+
+    #alternative implementation of the "on" argument in data.table joins...
+    #probably more flexible, so leaving it here in case we need to do something crazy
+    # data.table::setkeyv(x, 'datetime')
+    # data.table::setkeyv(y, 'datetime')
+
+    #convert the desired maximum roll distance from string to integer seconds
+    rollmax <- ifelse(test = rollmax == '7:30',
+                      yes = 7 * 60 + 30,
+                      no = 12 * 60 * 60)
+
+    #leaving this here in case the nearest neighbor join implemented below is too
+    #slow. then we can fall back to a basic rolling join with a maximum distance
+    # rollmax <- ifelse(test = direction == 'forward',
+    #                   yes = -rollmax,
+    #                   no = rollmax)
+    #rollends will move the first/last value of x in the opposite `direction` if necessary
+    # joined <- y[x, on = 'datetime', roll = rollmax, rollends = c(TRUE, TRUE)]
+
+    #create columns in x that represent the snapping window around each datetime
+    x[, `:=` (datetime_min = datetime_x - rollmax,
+              datetime_max = datetime_x + rollmax)]
+    y[, `:=` (datetime_y_orig = datetime_y)] #datetime col will be dropped from y
+
+    # if(indices_only){
+    #     y_indices <- y[x,
+    #                    on = .(datetime_y <= datetime_max,
+    #                           datetime_y >= datetime_min),
+    #                    which = TRUE]
+    #     return(y_indices)
+    # }
+
+    #join x rows to y if y's datetime falls within the x range
+    joined <- y[x, on = .(datetime_y <= datetime_max,
+                          datetime_y >= datetime_min)]
+    joined <- na.omit(joined, cols = 'datetime_y_orig') #drop rows without matches
+
+    #for any datetimes in x or y that were matched more than once, keep only
+    #the nearest match
+    joined[, `:=` (datetime_match_diff = abs(datetime_x - datetime_y_orig))]
+    joined <- joined[, .SD[which.min(datetime_match_diff)], by = datetime_x]
+    joined <- joined[, .SD[which.min(datetime_match_diff)], by = datetime_y_orig]
+
+    if(indices_only){
+        y_indices <- which(y$datetime_y %in% joined$datetime_y_orig)
+        x_indices <- which(x$datetime_x %in% joined$datetime_x)
+        return(list(x = x_indices, y = y_indices))
+    }
+
+    #drop and rename columns (data.table makes weird name modifications)
+    if(keep_datetimes_from == 'x'){
+        joined[, c('datetime_y', 'datetime_y.1', 'datetime_y_orig', 'datetime_match_diff') := NULL]
+        setnames(joined, 'datetime_x', 'datetime')
+    } else {
+        joined[, c('datetime_x', 'datetime_y.1', 'datetime_y', 'datetime_match_diff') := NULL]
+        setnames(joined, 'datetime_y_orig', 'datetime')
+    }
+
+    #restore error objects, var column, original column names (with suffixes).
+    #original column order
+    joined <- as_tibble(joined) %>%
+        mutate(val_x = errors::set_errors(val_x, err_x),
+               val_y = errors::set_errors(val_y, err_y)) %>%
+        select(-err_x, -err_y)
+        # mutate(var = !!varname)
+
+    # if(x_is_flowtibble) joined <- rename(joined,
+    #                                      flow = val_x,
+    #                                      ms_status_flow = ms_status_x,
+    #                                      ms_interp_flow = ms_interp_x)
+    # if(y_is_flowtibble) joined <- rename(joined,
+    #                                      flow = val_y,
+    #                                      ms_status_flow = ms_status_y,
+    #                                      ms_interp_flow = ms_interp_y)
+
+    # if(! sum(grepl('^val_[xy]$', colnames(joined))) > 1){
+    #     joined <- rename(joined, val = matches('^val_[xy]$'))
+    # }
+
+    joined <- select(joined,
+                     datetime,
+                     # matches('^val_?[xy]?$'),
+                     # any_of('flow'),
+                     starts_with('site_name'),
+                     any_of(c(starts_with('var_'), matches('^var$'))),
+                     any_of(c(starts_with('val_'), matches('^val$'))),
+                     starts_with('ms_status_'),
+                     starts_with('ms_interp_'))
+
+    return(joined)
 }
 
 retrieve_versionless_product <- function(network,
@@ -8789,21 +9238,21 @@ catalogue_held_data <- function(network_domain, site_data){
 
 expo_backoff <- function(expr,
                          max_attempts = 10,
-                         verbose = FALSE){
+                         verbose = TRUE){
 
     for(attempt_i in seq_len(max_attempts)){
 
         results <- try(expr = expr,
                        silent = TRUE)
 
-        if('try-error' %in% class(results)){
+        if(inherits(results, 'try-error')){
 
             backoff <- runif(n = 1,
                              min = 0,
                              max = 2^attempt_i - 1)
 
             if(verbose){
-                message("Backing off for ", backoff, " seconds.")
+                message(paste0("Backing off for ", round(backoff, 1), " seconds."))
             }
 
             Sys.sleep(backoff)
@@ -8811,7 +9260,7 @@ expo_backoff <- function(expr,
         } else {
 
             if(verbose){
-                message("Succeeded after ", attempt_i, " attempts.")
+                message(paste0("Succeeded after ", attempt_i, " attempt(s)."))
             }
 
             break

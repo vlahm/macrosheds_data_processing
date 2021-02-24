@@ -1,0 +1,237 @@
+"variable_code","variable_name","unit","method","variable_type","variable_subtype","R_display","valence","flux_convertible","molecule","notes"
+"Al_ICP","Aluminum ICP","mg/L","UNKNOWN","chem_discrete","Cations","expression(Al^'+3')","3",1,"Al",
+"OMAl","Aluminum OM","mg/L","UNKNOWN","chem_discrete","Other","expression(UNKNOWN)",3,1,"Al",
+"TMAl","Aluminum TM","mg/L","UNKNOWN","chem_discrete","Other","expression(UNKNOWN)",3,1,"Al",
+"Al","Aluminum","mg/l","UNKNOWN","chem_discrete","Other","expression(UNKNOWN)",3,1,"Al",
+"NH4","Ammonium","mg/L","UNKNOWN","chem_discrete","Cations","expression(NH^'+4')",1,1,,
+"Ca","Calcium","mg/L","flame atomic absorption spectroscopy","chem_discrete","Cations","expression(Ca^'+2')",2,1,,
+"Cl","Chloride","mg/L","ion chromatography","chem_discrete","Anions","expression(Cl^'-')",1,1,,
+"F","Fluorine","mg/L","UNKNOWN","chem_discrete","Anions","expression(F^'-')",1,1,,
+"Fe","Iron","mg/L","UNKNOWN","chem_discrete","Cations","expression(UNKNOWN)",2.5,1,,
+"Mg","Magnesium","mg/L","flame atomic absorption spectroscopy","chem_discrete","Cations","expression(Mg^'+2')",2,1,,
+"Mn","Manganese","mg/L","UNKNOWN","chem_discrete","Cations","expression(UNKNOWN)",3,1,,
+"NO3","Nitrate","mg/L","UNKNOWN","chem_discrete","Anions","expression(NO[3]^'-')",1,1,,
+"PO4","Phosphate","mg/L","UNKNOWN","chem_discrete","Anions","expression(PO[4]^'-3')",3,1,,
+"K","Potassium","mg/L","flame atomic absorption spectroscopy","chem_discrete","Cations","expression(K^'+')",1,1,,
+"Na","Sodium","mg/L","flame atomic absorption spectroscopy","chem_discrete","Cations","expression(Na^'+')",1,1,,
+"SO4","Sulfate","mg/L","UNKNOWN","chem_discrete","Anions","expression(SO[4]^'-2')",2,1,,
+"anionCharge","TOTAL Anion Charge","ueq/L","UNKNOWN","chem_mix","Other","expression(UNKNOWN)",,0,,
+"cationCharge","TOTAL Cation Charge","ueq/L","UNKNOWN","chem_mix","Other","expression(UNKNOWN)",,0,,
+"pH","pH","unitless","glass electrode","chem_mix","Other","expression(UNKNOWN)",,0,,
+"pHmetrohm","pH Metrohm","unitless","UNKNOWN","chem_mix","Other","expression(UNKNOWN)",,0,,
+"DOC","Dissolved Organic Carbon","mg/L","combustion","chem_discrete","Other","expression(UNKNOWN)",1,1,"C",
+"TDN","Total Dissolved Nitrogen","mg/L","persulfate digestion - calorimetric analysis","chem_discrete","Other","expression(UNKNOWN)",1,1,"N",
+"DON","Dissolved Organic Nitrogen","mg/L","derived","chem_discrete","Other","expression(UNKNOWN)",1,1,"N",
+"DIC","Dissolved Inorganic Carbon","mg/L","UNKNOWN","chem_discrete","Other","expression(UNKNOWN)",1,1,"C",
+"SiO2","Silica","mg/L","molybdenum blue","chem_discrete","Other","expression(SiO[2])",1,1,,
+"SiO2_Si","Silica-Si","mg/L","UNKNOWN","chem_discrete","Other","expression(UNKNOWN)",1,1,"Si",
+"ANC960","Acid Neutralizing Capacity 960","ueq/L","UNKNOWN","chem_mix","Other","expression(UNKNOWN)",,0,,"standardize this to ANC (hbef?)"
+"ANCMet","Acid Neutralizing Capacity Met","ueq/L","UNKNOWN","chem_mix","Other","expression(UNKNOWN)",,0,,"standardize this to ANC (hbef?)"
+"spCond","Specific Conductivity","uS/cm","UNKNOWN","chem_mix","Other","expression(UNKNOWN)",,0,,
+"theoryCond","Theoretical Conductivity","uS/cm","UNKNOWN","chem_mix","Other","expression(UNKNOWN)",,0,,
+"temp","Water Temperature","degrees C","UNKNOWN","phys","Other","expression(UNKNOWN)",,0,,
+"ionBalance","Ion Balance","ueq/L","UNKNOWN","chem_mix","Other","expression(UNKNOWN)",,0,,
+"precipitation_ns","Basin Precip (nonstandard)","mm","UNKNOWN","phys","Other","expression(UNKNOWN)",,0,,
+"discharge_ns","Discharge (nonstandard)","L/s","UNKNOWN","phys","Other","expression(UNKNOWN)",,0,,
+"precipitation","Basin Precip","mm","UNKNOWN","phys","Other","expression(UNKNOWN)",,0,,
+"discharge","Discharge","L/s","UNKNOWN","phys","Other","expression(UNKNOWN)",,0,,
+"alk","Alkalinity","mg/L","electrometric titration to pH 4.5","chem_mix","Other","expression(UNKNOWN)",,1,,
+"suspSed","Suspended Sediment","mg/L","gravimetric","phys","Other","expression(UNKNOWN)",,1,,
+"NH4_N","Ammonium-N","mg/L","phenate method","chem_discrete","Cations","expression(UNKNOWN)",1,1,"N",
+"NH3_N","Ammonia-N","mg/L","phenate method","chem_discrete","Cations","expression(UNKNOWN)",3,1,"N",
+"NO3_N","Nitrate-N","mg/L","cadmium reduction","chem_discrete","Anions","expression(UNKNOWN)",1,1,"N",
+"PO4_P","Phosphate-P","mg/L","ascorbic acid","chem_discrete","Anions","expression(UNKNOWN)",3,1,"P",
+"SO4_S","Sulfate-S","mg/L","ion chromatography","chem_discrete","Anions","expression(UNKNOWN)",2,1,"S",
+"TDP","Total Dissolved Phosphorus","mg/L","persulfate digestion - ascorbic acid finish","chem_discrete","Other","expression(UNKNOWN)",1,1,"P",
+"TKN","Total Kjeldahl Nitrogen","mg/L","Kjeldahl digestion - nessler finish","chem_discrete","Other","expression(UNKNOWN)",1,1,"N",
+"UTKN","Unfilt. Total Kjeldahl Nitrogen","mg/L","Kjeldahl digestion - nessler finish","chem_discrete","Other","expression(UNKNOWN)",1,1,"N",
+"UTN","Unfiltered Total Nitrogen","mg/L","persulfate digestion - calorimetric analysis","chem_discrete","Other","expression(UNKNOWN)",1,1,"N",
+"UTP","Unfiltered Total Phosphorus","mg/L","persulfate digestion - ascorbic acid finish","chem_discrete","Other","expression(UNKNOWN)",1,1,"P",
+"ANC","Acid Neutralizing Capacity","eq/L","UNKNOWN","chem_mix","Other","expression(UNKNOWN)",,0,,
+"Br","Bromide","mg/L","UNKNOWN","chem_discrete","Anions","expression(Br^'-')",1,1,,
+"CO3","Carbonate","mg/L","UNKNOWN","chem_discrete","Anions","expression(CO[3]^'-2')",2,1,,
+"HCO3","Bicarbonate","mg/L","UNKNOWN","chem_discrete","Anions","expression(HCO[3]^'-')",3,1,,
+"NO2","Nitrite","mg/L","UNKNOWN","chem_discrete","Anions","expression(NO[2]^'-')",1,1,"NO2",
+"NO2_N","Nitrite-N","mg/L","UNKNOWN","chem_discrete","Other","expression(UNKNOWN)",1,1,"N",
+"NO3_NO2","Nitrate and nitrite","mg/L","UNKNOWN","chem_discrete","Other","expression(UNKNOWN)",1,1,"NO3",
+"NO3_NO2_N","Nitrate-N and nitrite-N","mg/L","UNKNOWN","chem_discrete","Other","expression(UNKNOWN)",1,1,"N",
+"Si","Silicon","mg/L","UNKNOWN","chem_discrete","Anions","expression(Si^'-4')",4,1,,
+"TDS","Total Dissolved Solids","mg/L","UNKNOWN","chem_mix","Other","expression(UNKNOWN)",,0,,
+"TN","Total Nitrogen","mg/L","UNKNOWN","chem_discrete","Other","expression(UNKNOWN)",1,1,"N",
+"TOC","Total Organic Carbon","mg/L","UNKNOWN","chem_discrete","Other","expression(UNKNOWN)",1,1,"C",
+"TP","Total Phosphorus","mg/L","UNKNOWN","chem_discrete","Other","expression(UNKNOWN)",1,1,"P",
+"TPC","Total Particulate Carbon","mg/L","UNKNOWN","chem_discrete","Other","expression(UNKNOWN)",,0,"C",
+"TPN","Total Particulate Nitrogen","mg/L","UNKNOWN","chem_discrete","Other","expression(UNKNOWN)",,0,"N",
+"TPP","Total Particulate Phosphorus","mg/L","UNKNOWN","chem_discrete","Other","expression(UNKNOWN)",,0,"P","also known as particulate phosphorus"
+"TSS","Total Suspended Solids","mg/L","UNKNOWN","phys","Other","expression(UNKNOWN)",,0,,
+"VSS","Volatile Suspended Sediment","mg/L","UNKNOWN","phys","Other","expression(UNKNOWN)",,0,,
+"abs250","UV Absorbance at 250nm","unitless","UNKNOWN","phys","Other","expression(UNKNOWN)",,0,,
+"abs280","UV Absorbance at 280nm","unitless","UNKNOWN","phys","Other","expression(UNKNOWN)",,0,,
+"abs254","UV Absorbance at 254nm","unitless","UNKNOWN","phys","Other","expression(UNKNOWN)",,0,,
+"PAR","Photosynthetically Active Radiation","uM/m^2/s","UNKNOWN","phys","Other","expression(UNKNOWN)",,0,,
+"DO","Dissolved Oxygen","mg/L","UNKNOWN","gas","Other","expression(UNKNOWN)",,0,"O",
+"CHL","Chlorophyll","mg/L","UNKNOWN","bio","Other","expression(UNKNOWN)",,0,,
+"turbid","Turbidity","FNU","UNKNOWN","phys","Other","expression(UNKNOWN)",,0,,
+"FDOM","Fluorescent Dissolved Organic Matter","QSU","UNKNOWN","chem_mix","Other","expression(UNKNOWN)",,0,,
+"CO2","Carbon Dioxide","ppm","UNKNOWN","gas_PENDING","Other","expression(UNKNOWN)",,0,,
+"CH4","Methane","ppm","UNKNOWN","gas_PENDING","Other","expression(UNKNOWN)",,0,,
+"N2O","Nitrous Oxide","ppm","UNKNOWN","gas_PENDING","Other","expression(UNKNOWN)",,0,,
+"ionError","Ion Error","%","UNKNOWN","chem_mix","Other","expression(UNKNOWN)",,0,,
+"AnCaR","Anion-Cation Ratio","unitless","UNKNOWN","chem_mix","Other","expression(UNKNOWN)",,0,,
+"perimeter","Perimeter","m","UNKNOWN","spatial","Other","expression(UNKNOWN)",,0,,
+"TIP","Total Inorganic Phosphorus","mg/L","UNKNOWN","chem_discrete","Other","expression(UNKNOWN)",1,1,"P",
+"TIC","Total Inorganic Carbon","mg/L","UNKNOWN","chem_discrete","Other","expression(UNKNOWN)",1,1,"C",
+"DOP","Dissolved Organic Phosphorus","mg/L","UNKNOWN","chem_discrete","Other","expression(UNKNOWN)",1,1,"P",
+"H","Hydrogen","mg/L","UNKNOWN","chem_discrete","Cations","expression(H^'+')",1,1,,
+"POC","Particulate Organic Carbon","mg/L","UNKNOWN","chem_discrete","Other","expression(UNKNOWN)",,1,"C",
+"acidity","Acidity","ueq/L","UNKNOWN","chem_mix","Other","expression(UNKNOWN)",,0,,
+"TIN","Total Inorganic Nitrogen","mg/L","UNKNOWN","chem_discrete","Other","expression(UNKNOWN)",1,1,"N",
+"d18O","Delta 18 Oxygen ","ppt","UNKNOWN","phys","Other","expression(UNKNOWN)",,0,"O",
+"Ecoli","Escherichia coli","#/mL","UNKNOWN","bio","Other","expression(UNKNOWN)",,0,,"Ecoli is generally measured in CFU/ml and PNC/ml but they are roughly comparable so we can use #/ml"
+"Li","Lithium","mg/L","UNKNOWN","chem_discrete","Cations","expression(UNKNOWN)",1,1,"Li",
+"SRP","Soluble Reactive Phosphorus","mg/L","UNKNOWN","chem_discrete","Anions","expression(UNKNOWN)",3,1,"PO4",
+"PON","Particulate Organic Nitrogen","mg/L","UNKNOWN","chem_discrete","Other","expression(UNKNOWN)",,1,"N",
+"salinity","Salinity","ppt","UNKNOWN","chem_mix","Other","expression(UNKNOWN)",,0,,
+"phaeopig","Phaeopigment","mg/L","Acetone TurnerDesigns 10AU Fluorometer","bio","Other","expression(UNKNOWN)",,0,,
+"B","Boron","mg/L","Absorption/Emission Spectrophotometer","chem_discrete","Anions","expression(B^'-')",1,1,"B",
+"Cd","Cadmium","mg/L","Absorption/Emission Spectrophotometer","chem_discrete","Cations","expression(Cd^'+2')",2,1,"Cd",
+"Cr","Chromium","mg/L","Absorption/Emission Spectrophotometer","chem_discrete","Other","expression(UNKNOWN)",,1,"Cr","Many ion forms, not sure which to use over mean?"
+"Cu","Copper","mg/L","Absorption/Emission Spectrophotometer","chem_discrete","Other","expression(Cu^'+2')",2,1,"Cu",
+"Pb","Lead","mg/L","Absorption/Emission Spectrophotometer","chem_discrete","Other","expression(Pb^'+4')",4,1,"Pb",
+"Ni60","Nickel","mg/L","Absorption/Emission Spectrophotometer","chem_discrete","Other","expression(Ni^'+2')",2,1,"Ni",
+"Zn","Zinc","mg/L","Absorption/Emission Spectrophotometer","chem_discrete","Other","expression(Zn^'+2')",2,1,"Zn",
+"Sr","Strontium","mg/L","Absorption/Emission Spectrophotometer","chem_discrete","Other","expression(Sr^'+2')",2,1,"Sr",
+"S","Sulfer","mg/L","Absorption/Emission Spectrophotometer","chem_discrete","Other","expression(UNKNOWN)",6,1,"S",
+"Be","Beryllium","mg/L","UNKNOWN","chem_discrete","Cations","expression(Be^'+2')","2","1","Be",
+"Ti49","Titanium","mg/L","UNKNOWN","chem_discrete","Cations","expression(UNKNOWN)","2.5","1","Ti",
+"V","Vanadium","mg/L","UNKNOWN","chem_discrete","Cations","expression(UNKNOWN)",,"1","V","Not sure what valence to use"
+"Co","Cobalt","mg/L","UNKNOWN","chem_discrete","Cations","expression(UNKNOWN)","2.5","1","Co","Check valence"
+"As","Arsenic","mg/L","UNKNOWN","chem_discrete","Cations","expression(As^'+3')","3","1","As","Check valence"
+"Se78","Selenium","mg/L","UNKNOWN","chem_discrete","Anions","expression(As^'-2')","2","1","Se",
+"Y","Yttrium","mg/L","UNKNOWN","chem_discrete","Cations","expression(Y^'+3')","3","1","Y",
+"Mo","Molybdenum","mg/L","UNKNOWN","chem_discrete","Cations","expression(UNKNOWN)",,"1","Mo","Not sure what valence to use"
+"Ag","Silver","mg/L","UNKNOWN","chem_discrete","Cations","expression(UNKNOWN)",,"1","Ag","Not sure what valence to use"
+"Sn118","Tin","mg/L","UNKNOWN","chem_discrete","Cations","expression(UNKNOWN)","3","1","Sn","Tin looks like it has both 2+ and 4+, using 3 as mean"
+"Sb","Antimony","mg/L","UNKNOWN","chem_discrete","Cations","expression(UNKNOWN)","4","1","Sb","Antimony looks like it has both 3+ and 5+, using 4 as mean"
+"Ba","Barium","mg/L","UNKNOWN","chem_discrete","Cations","expression(Ba^'+2')","2","1","Ba",
+"La","Lanthanum","mg/L","UNKNOWN","chem_discrete","Cations","expression(La^'+3')",3,1,"La",
+"Ce","Cerium","mg/L","UNKNOWN","chem_discrete","Cations","expression(UNKNOWN)",,1,"Ce","Not sure what valence to use"
+"Pr","Praseodymium","mg/L","UNKNOWN","chem_discrete","Cations","expression(Pr^'+3')",3,1,"Pr","Check valence"
+"Nd145","Neodymium","mg/L","UNKNOWN","chem_discrete","Cations","expression(UNKNOWN)",,1,"Nd","Not sure what valence to use"
+"Sm147","Samarium","mg/L","UNKNOWN","chem_discrete","Cations","expression(UNKNOWN)",,1,"Sm","Not sure what valence to use"
+"Eu","Europium","mg/L","UNKNOWN","chem_discrete","Cations","expression(UNKNOWN)",,1,"Eu","Not sure what valence to use"
+"Gd157","Gadolinium","mg/L","UNKNOWN","chem_discrete","Cations","expression(UNKNOWN)",,1,"Gd","Not sure what valence to use"
+"Tb","Terbium","mg/L","UNKNOWN","chem_discrete","Cations","expression(UNKNOWN)",,1,"Tb","Not sure what valence to use"
+"Dy","Dysprosium","mg/L","UNKNOWN","chem_discrete","Cations","expression(UNKNOWN)",,1,"Dy","Not sure what valence to use"
+"Ho","Holmium","mg/L","UNKNOWN","chem_discrete","Cations","expression(UNKNOWN)",,1,"Ho","Not sure what valence to use"
+"Er","Erbium","mg/L","UNKNOWN","chem_discrete","Cations","expression(UNKNOWN)",,1,"Er","Not sure what valence to use"
+"Tm","Thulium","mg/L","UNKNOWN","chem_discrete","Cations","expression(UNKNOWN)",,1,"Tm","Not sure what valence to use"
+"Yb","Ytterbium","mg/L","UNKNOWN","chem_discrete","Cations","expression(UNKNOWN)",,1,"Yb","Not sure what valence to use"
+"Lu","Lutetium","mg/L","UNKNOWN","chem_discrete","Cations","expression(UNKNOWN)",,1,"Lu","Not sure what valence to use"
+"U","Uranium ","mg/L","UNKNOWN","chem_discrete","Cations","expression(UNKNOWN)",,1,"U","Not sure what valence to use"
+"Tl","Thallium","mg/L","UNKNOWN","chem_discrete","Cations","expression(UNKNOWN)",,1,"Tl","Not sure what valence to use"
+"pheophy","Sestonic Phaeophytin","mg/l","Acetone TurnerDesigns 10AU Fluorometer","bio","Other","expression(UNKNOWN)",,0,,"Not sure what valence to use"
+"TCHL","Sestonic Total Chlorophyll","mg/l","Acetone TurnerDesigns 10AU Fluorometer","bio","Other","expression(UNKNOWN)",,0,,"Not sure what valence to use"
+"BPC","Benthic Particulate Carbon","mg/cm2","Epilithic - Whole Rock, PE2400 CHN Combustion Method        ","chem_discrete","Other","expression(mg/cm^'2')",,0,,
+"BPN","Benthic Particulate Nitrogen","mg/cm2","Epilithic - Whole Rock, PE2400 CHN Combustion Method        ","chem_discrete","Other","expression(mg/cm^'2')",,0,,
+"BPP","Benthic Particulate Phosphorus","mg/cm2","Epilithic - Whole Rock, PE2400 CHN Combustion Method        ","chem_discrete","Other","expression(mg/cm^'2')",,0,,
+"ECHL_A","Epilithic Chlorophyll a","mg/cm2","Epilithic - Whole Rock, PE2400 CHN Combustion Method        ","bio","Other","expression(mg/cm^'2')",,0,,
+"E_pheophy","Epilithic Phaeophytin","mg/cm2","Epilithic - Whole Rock, PE2400 CHN Combustion Method        ","bio","Other","expression(mg/cm^'2')",,0,,
+"T_ECHL","Epilithic Total Chlorophyll","mg/cm2","Epilithic - Whole Rock, Acetone TurnerDesigns 10AU Fluorometer        ","bio","Other","expression(mg/cm^'2')",,0,,
+"prism_cumulative_precip","Watershed Annual","mm","UNKNOWN","ws_char","Prism Precipitation",,,0,,
+"prism_precip_sd_year","Annual Standard Deviation",,"UNKNOWN","ws_char","Prism Precipitation",,,0,,
+"prism_precip_sd","Watershed Standard Deviation",,"UNKNOWN","ws_char","Prism Precipitation",,,0,,
+"prism_temp_mean","Watershed Mean","C","UNKNOWN","ws_char","Prism Temperature",,,0,,
+"prism_temp_sd_year","Annual Standard Deviation",,"UNKNOWN","ws_char","Prism Temperature",,,0,,
+"prism_temp_sd_space","Watershed Standard Deviation",,"UNKNOWN","ws_char","Prism Temperature",,,0,,
+"bare_cover_median","Watershed Median","%","UNKNOWN","ws_char","Bare Ground Cover",,,0,,
+"bare_cover_sd","Watershed Standard Deviation",,"UNKNOWN","ws_char","Bare Ground Cover",,,0,,
+"tree_cover_median","Watershed Median","%","UNKNOWN","ws_char","Tree Cover",,,0,,
+"tree_cover_sd","Watershed Standard Deviation",,"UNKNOWN","ws_char","Tree Cover",,,0,,
+"veg_cover_median","Watershed Median","%","UNKNOWN","ws_char","Non-Tree Cover",,,0,,
+"veg_cover_sd","Watershed Standard Deviation",,"UNKNOWN","ws_char","Non-Tree Cover",,,0,,
+"sos_mean","Watershed Mean","DOY","UNKNOWN","ws_char","Start of Growing Season",,,0,,
+"sos_sd","Watershed Standard Deviation",,"UNKNOWN","ws_char","Start of Growing Season",,,0,,
+"eos_mean","Watershed Mean","DOY","UNKNOWN","ws_char","End of Growing Season",,,0,,
+"eos_sd","Watershed Standard Deviation",,"UNKNOWN","ws_char","End of Growing Season",,,0,,
+"season_length_mean","Watershed Mean","Days","UNKNOWN","ws_char","Length of Growing Season",,,0,,
+"season_length_sd
+","Watershed Standard Deviation",,"UNKNOWN","ws_char","Length of Growing Season",,,0,,
+"mos_mean","Watershed Mean","DOY","UNKNOWN","ws_char","Max Day in Growing Season",,,0,,
+"mos_sd","Watershed Standard Deviation",,"UNKNOWN","ws_char","Max Day in Growing Season",,,0,,
+"lai_max","Annual Maximum","m2/m2","UNKNOWN","ws_char","Leaf Area Index",,,0,,
+"lai_mean","Annual Mean","m2/m2","UNKNOWN","ws_char","Leaf Area Index",,,0,,
+"lai_min","Annual Minimum","m2/m2","UNKNOWN","ws_char","Leaf Area Index",,,0,,
+"lai_sd_year","Annual Standard Deviation",,"UNKNOWN","ws_char","Leaf Area Index",,,0,,
+"lai_sd_space","Watershed Standard Deviation",,"UNKNOWN","ws_char","Leaf Area Index",,,0,,
+"fpar_max","Annual Maximum","%","UNKNOWN","ws_char","Fraction of Absorbed Photosynthetically Active Radiation",,,0,,
+"fpar_mean","Annual Mean","%","UNKNOWN","ws_char","Fraction of Absorbed Photosynthetically Active Radiation",,,0,,
+"fpar_min","Annual Minimum","%","UNKNOWN","ws_char","Fraction of Absorbed Photosynthetically Active Radiation",,,0,,
+"fpar_sd_year","Annual Standard Deviation",,"UNKNOWN","ws_char","Fraction of Absorbed Photosynthetically Active Radiation",,,0,,
+"fpar_sd_space","Watershed Standard Deviation",,"UNKNOWN","ws_char","Fraction of Absorbed Photosynthetically Active Radiation",,,0,,
+"gpp_sum","Annual Sum","kg*C/m^2","UNKNOWN","ws_char","Gross Primary Production",,,0,,
+"gpp_sd_year","Annual Standard Deviation",,"UNKNOWN","ws_char","Gross Primary Production",,,0,,
+"gpp_sd_space","Watershed Standard Deviation",,"UNKNOWN","ws_char","Gross Primary Production",,,0,,
+"npp_median","Annual Sum","kg*C/m^2","UNKNOWN","ws_char","Net Primary Production",,,0,,
+"npp_sd","Watershed Standard Deviation",,"UNKNOWN","ws_char","Net Primary Production",,,0,,
+"slope_mean","Mean Slope","%","UNKNOWN","ws_char","Terrain",,,0,,
+"area","Area","ha","UNKNOWN","ws_char","Terrain",,,0,,
+"MH_Al","Moss: Hygrohypnum: Aluminum","%","Dry weight before and after 550C muffle","bio","Other","expression(UNKNOWN)",,0,,"From Arctic LTER"
+"MH_B","Moss: Hygrohypnum: Boron","%","Dry weight before and after 550C muffle","bio","Other","expression(UNKNOWN)",,0,,"From Arctic LTER"
+"MH_Ca","Moss: Hygrohypnum: Calcium","%","Dry weight before and after 550C muffle","bio","Other","expression(UNKNOWN)",,0,,"From Arctic LTER"
+"MH_C","Moss: Hygrohypnum: Carbon","%","Dry weight before and after 550C muffle","bio","Other","expression(UNKNOWN)",,0,,"From Arctic LTER"
+"MH_Cu","Moss: Hygrohypnum: Copper","%","Dry weight before and after 550C muffle","bio","Other","expression(UNKNOWN)",,0,,"From Arctic LTER"
+"MH_Fe","Moss: Hygrohypnum: Iron","%","Dry weight before and after 550C muffle","bio","Other","expression(UNKNOWN)",,0,,"From Arctic LTER"
+"MH_Mg","Moss: Hygrohypnum: Magnesium","%","Dry weight before and after 550C muffle","bio","Other","expression(UNKNOWN)",,0,,"From Arctic LTER"
+"MH_Mn","Moss: Hygrohypnum: Manganese","%","Dry weight before and after 550C muffle","bio","Other","expression(UNKNOWN)",,0,,"From Arctic LTER"
+"MH_N","Moss: Hygrohypnum: Nitrogen","%","Dry weight before and after 550C muffle","bio","Other","expression(UNKNOWN)",,0,,"From Arctic LTER"
+"MH_P","Moss: Hygrohypnum: Phosphorus","%","Dry weight before and after 550C muffle","bio","Other","expression(UNKNOWN)",,0,,"From Arctic LTER"
+"MH_K","Moss: Hygrohypnum: Potassium","%","Dry weight before and after 550C muffle","bio","Other","expression(UNKNOWN)",,0,,"From Arctic LTER"
+"MH_Na","Moss: Hygrohypnum: Sodium","%","Dry weight before and after 550C muffle","bio","Other","expression(UNKNOWN)",,0,,"From Arctic LTER"
+"MH_S","Moss: Hygrohypnum: Sulfur","%","Dry weight before and after 550C muffle","bio","Other","expression(UNKNOWN)",,0,,"From Arctic LTER"
+"MH_Zn","Moss: Hygrohypnum: Zinc","%","Dry weight before and after 550C muffle","bio","Other","expression(UNKNOWN)",,0,,"From Arctic LTER"
+"MS_Al","Moss: Schistidium: Aluminum","%","Dry weight before and after 550C muffle","bio","Other","expression(UNKNOWN)",,0,,"From Arctic LTER"
+"MS_B","Moss: Schistidium: Boron","%","Dry weight before and after 550C muffle","bio","Other","expression(UNKNOWN)",,0,,"From Arctic LTER"
+"MS_Ca","Moss: Schistidium: Calcium","%","Dry weight before and after 550C muffle","bio","Other","expression(UNKNOWN)",,0,,"From Arctic LTER"
+"MS_C","Moss: Schistidium: Carbon","%","Dry weight before and after 550C muffle","bio","Other","expression(UNKNOWN)",,0,,"From Arctic LTER"
+"MS_Cu","Moss: Schistidium: Copper","%","Dry weight before and after 550C muffle","bio","Other","expression(UNKNOWN)",,0,,"From Arctic LTER"
+"MS_Fe","Moss: Schistidium: Iron","%","Dry weight before and after 550C muffle","bio","Other","expression(UNKNOWN)",,0,,"From Arctic LTER"
+"MS_Mg","Moss: Schistidium: Magnesium","%","Dry weight before and after 550C muffle","bio","Other","expression(UNKNOWN)",,0,,"From Arctic LTER"
+"MS_Mn","Moss: Schistidium: Manganese","%","Dry weight before and after 550C muffle","bio","Other","expression(UNKNOWN)",,0,,"From Arctic LTER"
+"MS_N","Moss: Schistidium: Nitrogen","%","Dry weight before and after 550C muffle","bio","Other","expression(UNKNOWN)",,0,,"From Arctic LTER"
+"MS_P","Moss: Schistidium: Phosphorus","%","Dry weight before and after 550C muffle","bio","Other","expression(UNKNOWN)",,0,,"From Arctic LTER"
+"MS_K","Moss: Schistidium: Potassium","%","Dry weight before and after 550C muffle","bio","Other","expression(UNKNOWN)",,0,,"From Arctic LTER"
+"MS_Na","Moss: Schistidium: Sodium","%","Dry weight before and after 550C muffle","bio","Other","expression(UNKNOWN)",,0,,"From Arctic LTER"
+"MS_S","Moss: Schistidium: Sulfur","%","Dry weight before and after 550C muffle","bio","Other","expression(UNKNOWN)",,0,,"From Arctic LTER"
+"MS_Zn","Moss: Schistidium: Zinc","%","Dry weight before and after 550C muffle","bio","Other","expression(UNKNOWN)",,0,,"From Arctic LTER"
+"MF_N","Moss: Fontinalis: Nitrogen","%","Dry weight before and after 550C muffle","bio","Other","expression(UNKNOWN)",,0,,"From Arctic LTER"
+"MF_P","Moss: Fontinalis: Phosphorus","%","Dry weight before and after 550C muffle","bio","Other","expression(UNKNOWN)",,0,,"From Arctic LTER"
+"ML_Al","Moss: Lemanea: Aluminum","%","Dry weight before and after 550C muffle","bio","Other","expression(UNKNOWN)",,0,,"From Arctic LTER"
+"ML_B","Moss: Lemanea: Boron","%","Dry weight before and after 550C muffle","bio","Other","expression(UNKNOWN)",,0,,"From Arctic LTER"
+"ML_Ca","Moss: Lemanea: Calcium","%","Dry weight before and after 550C muffle","bio","Other","expression(UNKNOWN)",,0,,"From Arctic LTER"
+"ML_C","Moss: Lemanea: Carbon","%","Dry weight before and after 550C muffle","bio","Other","expression(UNKNOWN)",,0,,"From Arctic LTER"
+"ML_Cu","Moss: Lemanea: Copper","%","Dry weight before and after 550C muffle","bio","Other","expression(UNKNOWN)",,0,,"From Arctic LTER"
+"ML_Fe","Moss: Lemanea: Iron","%","Dry weight before and after 550C muffle","bio","Other","expression(UNKNOWN)",,0,,"From Arctic LTER"
+"ML_Mg","Moss: Lemanea: Magnesium","%","Dry weight before and after 550C muffle","bio","Other","expression(UNKNOWN)",,0,,"From Arctic LTER"
+"ML_Mn","Moss: Lemanea: Manganese","%","Dry weight before and after 550C muffle","bio","Other","expression(UNKNOWN)",,0,,"From Arctic LTER"
+"ML_N","Moss: Lemanea: Nitrogen","%","Dry weight before and after 550C muffle","bio","Other","expression(UNKNOWN)",,0,,"From Arctic LTER"
+"ML_P","Moss: Lemanea: Phosphorus","%","Dry weight before and after 550C muffle","bio","Other","expression(UNKNOWN)",,0,,"From Arctic LTER"
+"ML_K","Moss: Lemanea: Potassium","%","Dry weight before and after 550C muffle","bio","Other","expression(UNKNOWN)",,0,,"From Arctic LTER"
+"ML_Na","Moss: Lemanea: Sodium","%","Dry weight before and after 550C muffle","bio","Other","expression(UNKNOWN)",,0,,"From Arctic LTER"
+"ML_S","Moss: Lemanea: Sulfur","%","Dry weight before and after 550C muffle","bio","Other","expression(UNKNOWN)",,0,,"From Arctic LTER"
+"ML_Zn","Moss: Lemanea: Zinc","%","Dry weight before and after 550C muffle","bio","Other","expression(UNKNOWN)",,0,,"From Arctic LTER"
+"MLW_Al","Moss: Liverwort: Aluminum","%","Dry weight before and after 550C muffle","bio","Other","expression(UNKNOWN)",,0,,"From Arctic LTER"
+"MLW_B","Moss: Liverwort: Boron","%","Dry weight before and after 550C muffle","bio","Other","expression(UNKNOWN)",,0,,"From Arctic LTER"
+"MLW_Ca","Moss: Liverwort: Calcium","%","Dry weight before and after 550C muffle","bio","Other","expression(UNKNOWN)",,0,,"From Arctic LTER"
+"MLW_C","Moss: Liverwort: Carbon","%","Dry weight before and after 550C muffle","bio","Other","expression(UNKNOWN)",,0,,"From Arctic LTER"
+"MLW_Cu","Moss: Liverwort: Copper","%","Dry weight before and after 550C muffle","bio","Other","expression(UNKNOWN)",,0,,"From Arctic LTER"
+"MLW_Fe","Moss: Liverwort: Iron","%","Dry weight before and after 550C muffle","bio","Other","expression(UNKNOWN)",,0,,"From Arctic LTER"
+"MLW_Mg","Moss: Liverwort: Magnesium","%","Dry weight before and after 550C muffle","bio","Other","expression(UNKNOWN)",,0,,"From Arctic LTER"
+"MLW_Mn","Moss: Liverwort: Manganese","%","Dry weight before and after 550C muffle","bio","Other","expression(UNKNOWN)",,0,,"From Arctic LTER"
+"MLW_N","Moss: Liverwort: Nitrogen","%","Dry weight before and after 550C muffle","bio","Other","expression(UNKNOWN)",,0,,"From Arctic LTER"
+"MLW_P","Moss: Liverwort: Phosphorus","%","Dry weight before and after 550C muffle","bio","Other","expression(UNKNOWN)",,0,,"From Arctic LTER"
+"MLW_K","Moss: Liverwort: Potassium","%","Dry weight before and after 550C muffle","bio","Other","expression(UNKNOWN)",,0,,"From Arctic LTER"
+"MLW_Na","Moss: Liverwort: Sodium","%","Dry weight before and after 550C muffle","bio","Other","expression(UNKNOWN)",,0,,"From Arctic LTER"
+"MLW_S","Moss: Liverwort: Sulfur","%","Dry weight before and after 550C muffle","bio","Other","expression(UNKNOWN)",,0,,"From Arctic LTER"
+"MLW_Zn","Moss: Liverwort: Zinc","%","Dry weight before and after 550C muffle","bio","Other","expression(UNKNOWN)",,0,,"From Arctic LTER"
+"MF_C","Moss: Fontinalis: Carbon","%","Dry weight before and after 550C muffle","bio","Other","expression(UNKNOWN)",,0,,"From Arctic LTER"

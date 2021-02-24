@@ -96,10 +96,54 @@ populate_set_details <- function(tracker, prodname_ms, site_name, avail,
             needed = avail_version - held_version > 0)
 
     if(any(is.na(retrieval_tracker$needed))){
-        msg = paste0('Must run `track_new_site_components` before ',
-            'running `populate_set_details`')
-        logerror(msg, logger=logger_module)
-        stop(msg)
+
+        #we used to raise an error for this, but now I'm just going to trust that
+        #we'll always run track_new_site_components before this function, so that
+        #we can use the same conditional to perform an important error correction:
+        #the case where a new version of a file shows up as a new file, as in the case
+        #of lter>arctic>stream_chemistry__10303>1978-2017_LTER_Streams_Chemistry_v6_csv,
+        #which became 2019_LTER_Streams_Chemistry_v9_csv and broke the system.
+
+        # msg = paste0('Must run `track_new_site_components` before ',
+        #     'running `populate_set_details`')
+        # logerror(msg = msg,
+        #          logger = logger_module)
+        # stop(msg)
+
+        prodfile <- sm(read_csv(glue('src/{n}/{d}/products.csv',
+                                     n = network,
+                                     d = domain)))
+
+        #if there's a components column, check to see if it already specifies a
+        #component. if so, replace the old component with the new one.
+        if('components' %in% colnames(prodfile)){
+
+            old_bool <- is.na(retrieval_tracker$needed)
+            oldprod <- retrieval_tracker$component[old_bool]
+            newprod <- retrieval_tracker$component[! old_bool]
+
+            prodrow <- which(prodfile$prodcode == prodcode &
+                 prodfile$prodname == prodname_from_prodname_ms(prodname_ms))
+
+            if(! is.na(prodfile[prodrow, 'components'])){
+                prodfile[prodrow, 'components'] <- newprod
+            }
+
+            logwarn(msg = glue('Found a component that was updated with a new ',
+                               'filename as well as a new version. Updating held_data ',
+                               'and {n}/{d}/products.csv ({p1} -> {p2})',
+                               n = network,
+                               d = domain,
+                               p1 = oldprod,
+                               p2 = newprod))
+
+            write_csv(x = prodfile,
+                      file = glue('src/{n}/{d}/products.csv',
+                                  n = network,
+                                  d = domain))
+        }
+
+        retrieval_tracker <- retrieval_tracker[! old_bool, ]
     }
 
     return(retrieval_tracker)

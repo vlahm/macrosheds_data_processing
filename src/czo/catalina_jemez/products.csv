@@ -1,28 +1,20 @@
 prodcode,prodname,retrieve_status,munge_status,derive_status,precursor_of,notes,hydroshare_id,component
 2504,discharge,ready,ready,NA,discharge__ms001,Jemez River Basin,c0e5094d1de54547a304d4dec3a7b3ff,!!SEARCH(CONTAINS(.csv)__|EXCLUDE(methods.csv|sites.csv|Daily_Streamflows/Daily_Valles_StreamFlow_wy2008_2010.csv|Daily_Streamflows/Daily_Valles_StreamFlow_wy2011_2012.csv))
-6686,discharge,ready,ready,,discharge__ms001,Bigelow Site,7703d249f062428b8229c03ce072e5c6,!!SEARCH(CONTAINS(Bigelow_StreamFlows))
-6686,stream_chemistry,ready,ready,,stream_chemistry__ms002,Bigelow Site,7703d249f062428b8229c03ce072e5c6,!!SEARCH(CONTAINS(Bigelow_StreamFlows))
-2644,discharge,ready,pending,,discharge__ms001,Marshall Gulch,3c1fd54381764e5b8865609cb4127d63,!!SEARCH(CONTAINS(MG_StreamFlows)__|CONTAINS(.csv))
-2497,stream_chemistry,ready,pending,,stream_chemistry__ms002,Oracle Ridge,9d7dd6ca40984607ad74a00ab0b5121b,!!SEARCH(CONTAINS(OR_Streamflow_hourly)__|CONTAINS(.csv))
-2497,discharge,ready,pending,,discharge__ms001,Oracle Ridge,9d7dd6ca40984607ad74a00ab0b5121b,!!SEARCH(CONTAINS(OR_Streamflow_hourly)__|CONTAINS(.csv))
-4135,stream_chemistry,ready,ready,,stream_chemistry__ms002,Jemez River Basin,553c42d3a8ee40309b2d77071aa25f2e,!!SEARCH(CONTAINS(.csv)__|EXCLUDE(.url))
-2740,stream_chemistry,ready,pending,,stream_chemistry__ms002,Santa Catalina Mountains,3df05937abfc4cb59b8be04d674c4b48,!!SEARCH(CONTAINS(.csv)__|EXCLUDE(.url))
-2532,precipitation,ready,ready,,,B2 Desert Site,f5ae15fbdcc9425e847060f89da61557,!!SEARCH(CONTAINS(.csv)__|EXCLUDE(sites.csv|methods.csv))
-2491,precipitation,ready,pending,,,Lower Site -- Jemez 2011 Burned ZOB,346cf577d01e4b2b90ff1cef86e789bb,!!SEARCH(CONTAINS(.csv)__|EXCLUDE(sites.csv|methods.csv))
-2494,precipitation,ready,pending,,,Upper Site -- Jemez 2011 Burned ZOB,1dc7b0975ae2469a96e3458075d3b75c,!!SEARCH(CONTAINS(.csv)__|EXCLUDE(sites.csv|methods.csv))
-2531,precipitation,ready,pending,,,Oracle Ridge,172de7fe091f48d98b1d380da5851932,!!SEARCH(CONTAINS(.csv))
-2475,precipitation,ready,pending,,,South-East Site -- Jemez 2013 Burned ZOB,0ba983afc62647dc8cfbd91058cfc56d,!!SEARCH(CONTAINS(.csv))
-2543,precipitation,ready,pending,,,Marshall Gulch,f7df7b07ea19477ab7ea701c34bc356b,!!SEARCH(CONTAINS(.csv))
-5491,precip_chemistry,ready,ready,,,Santa Catalina Mountains,4ab76a12613c493d82b2df57aa970c24,!!SEARCH(CONTAINS(.csv)__|EXCLUDE(.url))
-5492,precip_chemistry,ready,pending,,,Jemez River Basin,38c0e61607e74c329ac798c8001bfa95,!!SEARCH(CONTAINS(.csv)__|EXCLUDE(.url))
-2415,precipitation,ready,pending,,,Flux Tower -- Mixed Conifer,5ca1378090884e72a8dcb796d882bb07,!!SEARCH(CONTAINS(.csv)__|EXCLUDE(sites.csv|methods.csv|gapfilled))
-2425,precipitation,ready,pending,,,Flux Tower -- Ponderosa Pine,1db7abcf0eb64ef49000c46a6133949d,!!SEARCH(CONTAINS(.csv)__|EXCLUDE(sites.csv|methods.csv|gapfilled))
-,,,,,,,,
-,,,,,,,,
-,,,,,,,,
-,,,,,,,,
-,,,,,,,,
-,,,,,,,,
-,,,,,,,,
-,,,,,,,,
-,,,,,,,,
+6686,discharge,ready,ready,NA,discharge__ms001,Bigelow Site,7703d249f062428b8229c03ce072e5c6,!!SEARCH(CONTAINS(Bigelow_StreamFlows))
+6686,stream_chemistry,ready,ready,NA,stream_chemistry__ms002,Bigelow Site,7703d249f062428b8229c03ce072e5c6,!!SEARCH(CONTAINS(Bigelow_StreamFlows))
+2644,discharge,ready,pending,NA,discharge__ms001,Marshall Gulch,3c1fd54381764e5b8865609cb4127d63,!!SEARCH(CONTAINS(MG_StreamFlows)__|CONTAINS(.csv))
+2497,stream_chemistry,ready,pending,NA,stream_chemistry__ms002,Oracle Ridge,9d7dd6ca40984607ad74a00ab0b5121b,!!SEARCH(CONTAINS(OR_Streamflow_hourly)__|CONTAINS(.csv))
+2497,discharge,ready,pending,NA,discharge__ms001,Oracle Ridge,9d7dd6ca40984607ad74a00ab0b5121b,!!SEARCH(CONTAINS(OR_Streamflow_hourly)__|CONTAINS(.csv))
+4135,stream_chemistry,ready,ready,NA,stream_chemistry__ms002,Jemez River Basin,553c42d3a8ee40309b2d77071aa25f2e,!!SEARCH(CONTAINS(.csv)__|EXCLUDE(.url))
+2740,stream_chemistry,ready,pending,NA,stream_chemistry__ms002,Santa Catalina Mountains,3df05937abfc4cb59b8be04d674c4b48,!!SEARCH(CONTAINS(.csv)__|EXCLUDE(.url))
+2532,precipitation,ready,ready,NA,NA,B2 Desert Site,f5ae15fbdcc9425e847060f89da61557,!!SEARCH(CONTAINS(.csv)__|EXCLUDE(sites.csv|methods.csv))
+2491,precipitation,ready,pending,NA,NA,Lower Site -- Jemez 2011 Burned ZOB,346cf577d01e4b2b90ff1cef86e789bb,!!SEARCH(CONTAINS(.csv)__|EXCLUDE(sites.csv|methods.csv))
+2494,precipitation,ready,pending,NA,NA,Upper Site -- Jemez 2011 Burned ZOB,1dc7b0975ae2469a96e3458075d3b75c,!!SEARCH(CONTAINS(.csv)__|EXCLUDE(sites.csv|methods.csv))
+2531,precipitation,ready,pending,NA,NA,Oracle Ridge,172de7fe091f48d98b1d380da5851932,!!SEARCH(CONTAINS(.csv))
+2475,precipitation,ready,pending,NA,NA,South-East Site -- Jemez 2013 Burned ZOB,0ba983afc62647dc8cfbd91058cfc56d,!!SEARCH(CONTAINS(.csv))
+2543,precipitation,ready,pending,NA,NA,Marshall Gulch,f7df7b07ea19477ab7ea701c34bc356b,!!SEARCH(CONTAINS(.csv))
+5491,precip_chemistry,ready,ready,NA,NA,Santa Catalina Mountains,4ab76a12613c493d82b2df57aa970c24,!!SEARCH(CONTAINS(.csv)__|EXCLUDE(.url))
+5492,precip_chemistry,ready,pending,NA,NA,Jemez River Basin,38c0e61607e74c329ac798c8001bfa95,!!SEARCH(CONTAINS(.csv)__|EXCLUDE(.url))
+2415,precipitation,ready,pending,NA,NA,Flux Tower -- Mixed Conifer,5ca1378090884e72a8dcb796d882bb07,!!SEARCH(CONTAINS(.csv)__|EXCLUDE(sites.csv|methods.csv|gapfilled))
+2425,precipitation,ready,pending,NA,NA,Flux Tower -- Ponderosa Pine,1db7abcf0eb64ef49000c46a6133949d,!!SEARCH(CONTAINS(.csv)__|EXCLUDE(sites.csv|methods.csv|gapfilled))
+ms000,ws_boundary,NA,NA,NA,,automated entry,NA,NA

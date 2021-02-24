@@ -1,12 +1,13 @@
 prodcode,prodname,retrieve_status,munge_status,derive_status,precursor_of,notes,hydroshare_id,component
 6421,precipitation,ready,ready,NA,precip_pchem_pflux__ms005,NA,9b2a6c9e66c84380b0bfe34e435a0e0f,!!SEARCH(CONTAINS(.csv))
 6470,discharge,ready,ready,NA,stream_flux_inst__ms004,modern discharge,ad719c838a7b44e8bbacb33d2c4dd95f,!!SEARCH(CONTAINS(.csv))
-4680,precipitation,pending,pending,NA,NA,historical precip,4a30c526f14141bfbd4b496d348fbd20,calhoun-hydrology-1949-1962.zip
-4680,discharge,pending,pending,NA,NA,historical discharge,4a30c526f14141bfbd4b496d348fbd20,calhoun-hydrology-1949-1962.zip
+4680,precipitation,pending,ready,NA,NA,historical precip,4a30c526f14141bfbd4b496d348fbd20,calhoun-hydrology-1949-1962.zip
+4680,discharge,pending,ready,NA,NA,historical discharge,4a30c526f14141bfbd4b496d348fbd20,calhoun-hydrology-1949-1962.zip
 2851,stream_chemistry,ready,ready,NA,stream_flux_inst__ms004,NA,63cd313bd15b4b77b05b8f34ec9388ee,!!SEARCH(EXCLUDE(water-grab-samples.xlsx|ReadMe.md))
 ms001,precip_gauge_locations,NA,NA,ready,NA,NA,NA,NA
 ms002,stream_gauge_locations,NA,NA,ready,NA,NA,NA,NA
 ms004,stream_flux_inst,NA,NA,ready,NA,NA,NA,NA
 ms005,precip_pchem_pflux,NA,NA,ready,NA,NA,NA,NA
+ms000,ws_boundary,NA,NA,NA,precip_pchem_pflux__ms005,automated entry,NA,NA
 ms006,discharge,NA,NA,linked,NA,automated entry,NA,NA
 ms007,stream_chemistry,NA,NA,linked,NA,automated entry,NA,NA

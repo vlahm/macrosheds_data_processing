@@ -35,14 +35,16 @@ suppressPackageStartupMessages({
     library(PeriodicTable)
     library(imputeTS)
     library(errors)
-    library(foreach)
-    library(doParallel)
+    # library(foreach) #loaded by doFuture
+    library(doParallel) #replaced by doFuture, but still needed on BM1
+    library(doFuture)
     library(googlesheets4)
     library(rgee) #requires geojsonio package
 
     # install.packages("BiocManager") #required to get the IRanges package
     # BiocManager::install("IRanges") #required for fuzzyjoin::difference_inner_join
-    library(fuzzyjoin)
+    # library(fuzzyjoin) #nvm. too memory inefficient. implementing rolling join
+    #   from data.table instead
 
 })
 
@@ -51,7 +53,8 @@ options(dplyr.summarise.inform = FALSE)
 ms_init <- function(use_gpu = FALSE,
                     use_multicore_cpu = TRUE,
                     use_ms_error_handling = TRUE,
-                    force_machine_status){
+                    force_machine_status,
+                    config_storage_location = 'remote'){
 
     #TODO:
     #could add args that override automatically set instance_type, machine_status
@@ -61,7 +64,9 @@ ms_init <- function(use_gpu = FALSE,
     #use_gpu: logical. leverage GPU for turbo multithreading. not currently connected
     #   to anything, because we don't yet have a way to benefit from GPU in R
     #use_multicore_cpu: logical. if on a multicore machine, use all cores.
-    #   not currently hooked up.
+    #   not currently hooked up. Update this parameter so that it also allows
+    #   HPC on a cluster. currently, we just determine whether the instance is
+    #   on DCC with one of the setwd hacks below.
     #use_ms_error_handling. logical. if TRUE, errors are handled and processing
     #   continues. if FALSE, the handle_errors decorator is not invoked, and
     #   standard R error handling ensues.
@@ -69,6 +74,9 @@ ms_init <- function(use_gpu = FALSE,
     #   you're using. options are 'n00b' and '1337'. Among other (future) things,
     #   this determines the granularity of downloaded DEMs for watershed
     #   delineation
+    #config_storage_location: either 'local' or 'remote'.
+    #   governs whether site_data, variables, ws_delin_specs, etc are searched
+    #   for as local CSV files or as google sheets connections.
 
     #attempts to set working directory for various machines involved in the
     #   macrosheds project. determines from success/failure whether the current
@@ -82,6 +90,15 @@ ms_init <- function(use_gpu = FALSE,
 
     successes <- 0
     which_machine <- 'unknown'
+
+    res <- try(setwd('~/macrosheds_data_processing'), silent=TRUE) #DCC
+    if(! 'try-error' %in% class(res)){
+        successes <- successes + 1
+        which_machine <- 'DCC'
+        instance_type <- 'server'
+        machine_status <- '1337'
+        op_system <- 'linux'
+    }
 
     res <- try(setwd('~/git/macrosheds/data_acquisition'), silent=TRUE) #BM1
     if(! 'try-error' %in% class(res)){
@@ -151,16 +168,15 @@ ms_init <- function(use_gpu = FALSE,
                              use_multicore_cpu = use_multicore_cpu,
                              use_ms_error_handling = use_ms_error_handling,
                              config_data_storage = 'remote',
-                             op_system = op_system) #vs local, which
-        #governs whether site_data, variables, ws_delin_specs, etc are searched
-        #for as local CSV files or as google sheets connections. This is not hooked
-        #up to anything yet
+                             op_system = op_system,
+                             config_data_storage = config_storage_location)
 
     return(instance_details)
 }
 
-ms_instance <- ms_init(use_ms_error_handling = TRUE,
-                       force_machine_status = 'n00b')
+ms_instance <- ms_init(use_ms_error_handling = FALSE,
+                       force_machine_status = 'n00b',
+                       config_storage_location = 'remote')
 
 #load authorization file for macrosheds google sheets
 googlesheets4::gs4_auth(path = 'googlesheet_service_accnt.json')
@@ -216,7 +232,10 @@ for(dmnrow in 6){
     # owrite_tracker(network, domain)
     # held_data = invalidate_tracked_data(network, domain, 'derive')
     # owrite_tracker(network, domain)
-    # held_data = invalidate_tracked_data(network, domain, 'derive', prodname_ms)
+    # held_data = invalidate_tracked_data(network, domain, 'munge', 'stream_chemistry__10303')
+    # owrite_tracker(network, domain)
+    # held_data = invalidate_tracked_data(network, domain, 'derive', 'precip_pchem_pflux__ms004')
+    # owrite_tracker(network, domain)
 
     logger_module <- set_up_logger(network = network,
                                    domain = domain)
@@ -247,7 +266,7 @@ for(dmnrow in 6){
     retain_ms_globals(ms_globals)
 }
 
-logger_module <- 'ms'
+logger_module <- 'ms.module'
 
 generate_portal_extras(site_data = site_data,
                        network_domain = network_domain)
@@ -258,5 +277,5 @@ if(length(email_err_msgs)){
               pw = conf$gmail_pw)
 }
 
-loginfo('Run complete',
-        logger = 'ms.module')
+loginfo(msg = 'Run complete',
+        logger = logger_module)

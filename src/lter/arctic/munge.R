@@ -29,7 +29,7 @@ for(i in 1:nrow(prod_info)){
                                          prodname_ms = prodname_ms,
                                          site_name = site_name)
         if(munge_status == 'ok'){
-              loginfo(glue('Nothing to do for {s} {p}',
+            loginfo(glue('Nothing to do for {s} {p}',
                        s=site_name, p=prodname_ms), logger=logger_module)
             next
         } else {
