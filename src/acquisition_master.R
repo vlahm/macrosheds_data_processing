@@ -176,7 +176,7 @@ ms_init <- function(use_gpu = FALSE,
 
 ms_instance <- ms_init(use_ms_error_handling = FALSE,
                        force_machine_status = 'n00b',
-                       config_storage_location = 'remote')
+                       config_storage_location = 'local')
 
 #load authorization file for macrosheds google sheets
 googlesheets4::gs4_auth(path = 'googlesheet_service_accnt.json')
@@ -221,7 +221,7 @@ dir.create('logs', showWarnings = FALSE)
 
 # dmnrow=3
 # for(dmnrow in 1:nrow(network_domain)){
-for(dmnrow in 6){
+for(dmnrow in 9){
     # drop_automated_entries('.') #use with caution!
 
     network <- network_domain$network[dmnrow]
@@ -250,14 +250,14 @@ for(dmnrow in 6){
     get_all_local_helpers(network = network,
                           domain = domain)
 
-    ms_retrieve(network = network,
-                domain = domain)
-    ms_munge(network = network,
-             domain = domain)
-    sw(ms_delineate(network = network,
-                    domain = domain,
-                    dev_machine_status = ms_instance$machine_status,
-                    verbose = TRUE))
+    # ms_retrieve(network = network,
+    #             domain = domain)
+    # ms_munge(network = network,
+    #          domain = domain)
+    # sw(ms_delineate(network = network,
+    #                 domain = domain,
+    #                 dev_machine_status = ms_instance$machine_status,
+    #                 verbose = TRUE))
     ms_derive(network = network,
               domain = domain)
     # ms_general(network = network,
@@ -268,14 +268,14 @@ for(dmnrow in 6){
 
 logger_module <- 'ms.module'
 
-generate_portal_extras(site_data = site_data,
-                       network_domain = network_domain)
-
-if(length(email_err_msgs)){
-    email_err(msgs = email_err_msgs,
-              addrs = conf$report_emails,
-              pw = conf$gmail_pw)
-}
+# generate_portal_extras(site_data = site_data,
+#                        network_domain = network_domain)
+#
+# if(length(email_err_msgs)){
+#     email_err(msgs = email_err_msgs,
+#               addrs = conf$report_emails,
+#               pw = conf$gmail_pw)
+# }
 
 loginfo(msg = 'Run complete',
         logger = logger_module)
