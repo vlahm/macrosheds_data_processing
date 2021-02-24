@@ -38,8 +38,8 @@ suppressPackageStartupMessages({
     # library(foreach) #loaded by doFuture
     library(doParallel) #replaced by doFuture, but still needed on BM1
     library(doFuture)
-    library(googlesheets4)
-    library(rgee) #requires geojsonio package
+    # library(googlesheets4)
+    # library(rgee) #requires geojsonio package
 
     # install.packages("BiocManager") #required to get the IRanges package
     # BiocManager::install("IRanges") #required for fuzzyjoin::difference_inner_join
@@ -167,7 +167,6 @@ ms_init <- function(use_gpu = FALSE,
                              use_gpu = use_gpu,
                              use_multicore_cpu = use_multicore_cpu,
                              use_ms_error_handling = use_ms_error_handling,
-                             config_data_storage = 'remote',
                              op_system = op_system,
                              config_data_storage = config_storage_location)
 
@@ -179,7 +178,7 @@ ms_instance <- ms_init(use_ms_error_handling = FALSE,
                        config_storage_location = 'local')
 
 #load authorization file for macrosheds google sheets
-googlesheets4::gs4_auth(path = 'googlesheet_service_accnt.json')
+# googlesheets4::gs4_auth(path = 'googlesheet_service_accnt.json')
 
 #read in secrets
 conf <- jsonlite::fromJSON('config.json')
