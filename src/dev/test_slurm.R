@@ -2,6 +2,8 @@ library("batchtools")
 library("future.batchtools")
 
 slurm_submitJob = function(reg, jc) {
+    array.jobs = TRUE
+    nodename = 'localhost'
     assertRegistry(reg, writeable = TRUE)
     checkmate::assertClass(jc, "JobCollection")
     if (jc$array.jobs) {
@@ -40,6 +42,8 @@ slurm_killJob = function(reg, batch.id) {
                                         getClusters(reg)), batch.id), nodename = nodename)
 }
 listJobs = function(reg, args) {
+    array.jobs = TRUE
+    nodename = 'localhost'
     assertRegistry(reg, writeable = FALSE)
     args = c(args, "--noheader", "--format=%i")
     if (array.jobs)
@@ -69,7 +73,8 @@ clustf = batchtools::makeClusterFunctions(name = 'slurm_custom',
                                           listJobsQueued = NULL, #disable
                                           listJobsRunning = slurm_listJobsRunning,
                                           scheduler.latency = 1,
-                                          fs.latency = 65)
+                                          fs.latency = 65,
+                                          array.var = NA_character_)
 # clustf = batchtools::makeClusterFunctionsSlurm(template = 'slurm',
 #                                                scheduler.latency = 1)
 
