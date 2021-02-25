@@ -38,25 +38,23 @@ slurm_killJob = function(reg, batch.id) {
     cfKillJob(reg, "scancel", c(sprintf("--clusters=%s",
                                         getClusters(reg)), batch.id), nodename = nodename)
 }
+listJobs = function(reg, args) {
+    assertRegistry(reg, writeable = FALSE)
+    args = c(args, "--noheader", "--format=%i")
+    if (array.jobs)
+        args = c(args, "-r")
+    clusters = getClusters(reg)
+    if (length(clusters))
+        args = c(args, sprintf("--clusters=%s", clusters))
+    res = runOSCommand("squeue", args, nodename = nodename)
+    if (res$exit.code > 0L)
+        OSError("Listing of jobs failed", res)
+    if (length(clusters))
+        tail(res$output, -1L)
+    else res$output
+}
 slurm_listJobsQueued = function(reg) {
     args = c(quote("--user=$USER"), "--states=PD")
-
-    listJobs = function(reg, args) {
-        assertRegistry(reg, writeable = FALSE)
-        args = c(args, "--noheader", "--format=%i")
-        if (array.jobs)
-            args = c(args, "-r")
-        clusters = getClusters(reg)
-        if (length(clusters))
-            args = c(args, sprintf("--clusters=%s", clusters))
-        res = runOSCommand("squeue", args, nodename = nodename)
-        if (res$exit.code > 0L)
-            OSError("Listing of jobs failed", res)
-        if (length(clusters))
-            tail(res$output, -1L)
-        else res$output
-    }
-
     listJobs(reg, args)
 }
 slurm_listJobsRunning = function(reg) {
