@@ -1,12 +1,15 @@
+library("checkmate")
 library("batchtools")
 library("future.batchtools")
+library("stringi")
 
+#functions plucked and modified from batchtools::makeClusterFunctionsSlurm
 slurm_submitJob = function(reg, jc) {
     array.jobs = TRUE
     nodename = 'localhost'
     template = 'slurm'
     template = findTemplateFile(template)
-    if (testScalarNA(template))
+    if (checkmate::testScalarNA(template))
         stopf("Argument 'template' (=\"%s\") must point to a readable template file",
               template)
     template = cfReadBrewTemplate(template, "##")
@@ -23,7 +26,7 @@ slurm_submitJob = function(reg, jc) {
     if (res$exit.code > 0L) {
         temp.errors = c("Batch job submission failed: Job violates accounting policy (job submit limit, user's size and/or time limits)",
                         "Socket timed out on send/recv operation", "Submission rate too high, suggest using job arrays")
-        i = wf(stri_detect_fixed(output, temp.errors))
+        i = checkmate::wf(stri_detect_fixed(output, temp.errors))
         if (length(i) == 1L)
             return(makeSubmitJobResult(status = i, batch.id = NA_character_,
                                        msg = temp.errors[i]))
@@ -41,12 +44,14 @@ slurm_submitJob = function(reg, jc) {
         makeSubmitJobResult(status = 0L, batch.id = id)
     }
 }
+
 slurm_killJob = function(reg, batch.id) {
     assertRegistry(reg, writeable = TRUE)
     checkmate::assertString(batch.id)
     cfKillJob(reg, "scancel", c(sprintf("--clusters=%s",
                                         getClusters(reg)), batch.id), nodename = nodename)
 }
+
 listJobs = function(reg, args) {
     array.jobs = TRUE
     nodename = 'localhost'
@@ -64,14 +69,17 @@ listJobs = function(reg, args) {
         tail(res$output, -1L)
     else res$output
 }
+
 slurm_listJobsQueued = function(reg) {
     args = c(quote("--user=$USER"), "--states=PD")
     listJobs(reg, args)
 }
+
 slurm_listJobsRunning = function(reg) {
     args = c(quote("--user=$USER"), "--states=R,S,CG")
     listJobs(reg, args)
 }
+
 getClusters = function(reg) {
     clusters = batchtools:::filterNull(lapply(reg$resources$resources,
                                  "[[", "cluster"))
@@ -81,6 +89,8 @@ getClusters = function(reg) {
     return(character(0L))
 }
 
+# clustf = batchtools::makeClusterFunctionsSlurm(template = 'slurm',
+#                                                scheduler.latency = 1)
 clustf = batchtools::makeClusterFunctions(name = 'slurm_custom',
                                           submitJob = slurm_submitJob,
                                           killJob = slurm_killJob,
@@ -89,11 +99,10 @@ clustf = batchtools::makeClusterFunctions(name = 'slurm_custom',
                                           scheduler.latency = 1,
                                           fs.latency = 65,
                                           array.var = NA_character_)
-# clustf = batchtools::makeClusterFunctionsSlurm(template = 'slurm',
-#                                                scheduler.latency = 1)
 
 future::plan(future.batchtools::batchtools_custom(cluster.functions = clustf))
 # future::plan(future.batchtools::batchtools_slurm(cluster.functions = clustf))
+
 x %<-% { Sys.sleep(2); 3.14 }
 y %<-% { Sys.sleep(2); 2.71 }
 print(x + y)
