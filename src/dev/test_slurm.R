@@ -4,6 +4,12 @@ library("future.batchtools")
 slurm_submitJob = function(reg, jc) {
     array.jobs = TRUE
     nodename = 'localhost'
+    template = 'slurm'
+    template = findTemplateFile(template)
+    if (testScalarNA(template))
+        stopf("Argument 'template' (=\"%s\") must point to a readable template file",
+              template)
+    template = cfReadBrewTemplate(template, "##")
     assertRegistry(reg, writeable = TRUE)
     checkmate::assertClass(jc, "JobCollection")
     if (jc$array.jobs) {
@@ -67,7 +73,7 @@ slurm_listJobsRunning = function(reg) {
     listJobs(reg, args)
 }
 getClusters = function(reg) {
-    clusters = filterNull(lapply(reg$resources$resources,
+    clusters = batchtools:::filterNull(lapply(reg$resources$resources,
                                  "[[", "cluster"))
     if (length(clusters))
         return(stri_flatten(unique(as.character(clusters)),
