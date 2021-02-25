@@ -2,6 +2,7 @@ library("checkmate")
 library("batchtools")
 library("future.batchtools")
 library("stringi")
+# registerDoFuture()
 
 #functions plucked and modified from batchtools::makeClusterFunctionsSlurm
 slurm_submitJob = function(reg, jc) {
@@ -16,8 +17,13 @@ slurm_submitJob = function(reg, jc) {
     assertRegistry(reg, writeable = TRUE)
     checkmate::assertClass(jc, "JobCollection")
     if (jc$array.jobs) {
+        # /hpc/home/mjv22/macrosheds_data_processing/src/dev/.future/20210225_132641-Izj6p6/batchtools_1927935144/logs/job6f5e4c6fe4bb4e0b2992c248c943f66c.log
         logs = sprintf("%s_%i", fs::path_file(jc$log.file),
                        collapse::seq_row(jc$jobs))
+        print('1')
+        print(logs)
+        message('1')
+        message(logs)
         jc$log.file = stri_join(jc$log.file, "_%a")
     }
     outfile = cfBrewTemplate(reg, template, jc)
@@ -35,8 +41,11 @@ slurm_submitJob = function(reg, jc) {
     }
     id = stri_split_fixed(output[1L], " ")[[1L]][4L]
     if (jc$array.jobs) {
-        if (!array.jobs)
-            stop("Array jobs not supported by cluster function")
+        if (!array.jobs) stop("Array jobs not supported by cluster function")
+        print('2')
+        print(logs)
+        message('2')
+        message(logs)
         makeSubmitJobResult(status = 0L, batch.id = sprintf("%s_%i",
                                                             id, seq_row(jc$jobs)), log.file = logs)
     }
