@@ -1,11 +1,12 @@
+library("batchtools")
 library("future.batchtools")
 
 slurm_submitJob = function(reg, jc) {
     assertRegistry(reg, writeable = TRUE)
-    assertClass(jc, "JobCollection")
+    checkmate::assertClass(jc, "JobCollection")
     if (jc$array.jobs) {
         logs = sprintf("%s_%i", fs::path_file(jc$log.file),
-                       seq_row(jc$jobs))
+                       collapse::seq_row(jc$jobs))
         jc$log.file = stri_join(jc$log.file, "_%a")
     }
     outfile = cfBrewTemplate(reg, template, jc)
@@ -34,7 +35,7 @@ slurm_submitJob = function(reg, jc) {
 }
 slurm_killJob = function(reg, batch.id) {
     assertRegistry(reg, writeable = TRUE)
-    assertString(batch.id)
+    checkmate::assertString(batch.id)
     cfKillJob(reg, "scancel", c(sprintf("--clusters=%s",
                                         getClusters(reg)), batch.id), nodename = nodename)
 }
