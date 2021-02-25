@@ -66,6 +66,14 @@ slurm_listJobsRunning = function(reg) {
     args = c(quote("--user=$USER"), "--states=R,S,CG")
     listJobs(reg, args)
 }
+getClusters = function(reg) {
+    clusters = filterNull(lapply(reg$resources$resources,
+                                 "[[", "cluster"))
+    if (length(clusters))
+        return(stri_flatten(unique(as.character(clusters)),
+                            ","))
+    return(character(0L))
+}
 
 clustf = batchtools::makeClusterFunctions(name = 'slurm_custom',
                                           submitJob = slurm_submitJob,
