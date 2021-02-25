@@ -242,6 +242,8 @@ process_1_4341 <- function(network, domain, prodname_ms, site_name,
                                 ESTCODE = c('Q', 'S', 'P'),
                                 EVENT_CODE = c('INSREM', 'MAINTE')))
 
+    d$val <- d$val * 28.3168 #cfs to L/s
+
     d <- carry_uncertainty(d,
                            network = network,
                            domain = domain,
