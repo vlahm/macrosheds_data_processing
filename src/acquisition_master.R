@@ -405,7 +405,7 @@ for(dmnrow in 1:nrow(network_domain)){
         ms_general(network = network,
                    domain = domain,
                    get_missing_only = F,
-                   general_prod_filter = c('gpp_global_500m', 'npp_global_500m', 'evi'),
+                   general_prod_filter = c('pdsi', 'spei30d', 'et'),
                    bulk_mode = F) #seems reasonable to require this next year
                    # bulk_mode = ifelse(domain %in% non_bulk_domains, FALSE, TRUE)) #daymet is always in bulk mode.
     }

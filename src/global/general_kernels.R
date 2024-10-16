@@ -178,7 +178,8 @@ process_3_ms826 <- function(network, domain, prodname_ms, site_code, boundaries)
 #. handle_errors
 process_3_ms807 <- function(network, domain, prodname_ms, site_code, boundaries){
 
-    if(grepl('lai', prodname_ms)) {
+    if(grepl('lai', prodname_ms)){
+
         lai <- try(get_gee_standard(network = network,
                                     domain = domain,
                                     gee_id = 'MODIS/006/MOD15A2H',
@@ -246,7 +247,8 @@ process_3_ms807 <- function(network, domain, prodname_ms, site_code, boundaries)
         )
     }
 
-    if(grepl('fpar', prodname_ms)) {
+    if(grepl('fpar', prodname_ms)){
+
         fpar <- try(get_gee_standard(network = network,
                                      domain = domain,
                                      gee_id = 'MODIS/006/MOD15A2H',
@@ -2156,4 +2158,142 @@ process_3_ms825 <- function(network, domain, prodname_ms, site_code, boundaries)
 
     save_general_files(final_file = igbp_final,
                        domain_dir = igbp_dir)
+}
+
+#et: STATUS=READY
+#. handle_errors
+process_3_ms827 <- function(network, domain, prodname_ms, site_code, boundaries){
+
+    final <- try(get_gee_standard(network = network,
+                                  domain = domain,
+                                  gee_id = 'MODIS/061/MOD16A2GF',
+                                  band = 'ET',
+                                  prodname = 'et',
+                                  rez = 500,
+                                  site_boundary = boundaries,
+                                  batch = TRUE,
+                                  contiguous_us = FALSE))
+
+    if(is.null(final)){
+        return(generate_ms_exception(glue('No data were retrived for {site_code}')))
+    }
+
+    if(inherits(final, 'try-error')){
+        return(generate_ms_err(glue('error in retrieving {site_code}')))
+    }
+
+    final <- final$table %>%
+        mutate(datetime = ymd(datetime))
+
+    if(all(is.na(final$val)) || all(final$val == 0)){
+        return(generate_ms_exception(glue('No data were retrived for {site_code}')))
+    }
+
+    final_ <- final %>%
+        filter(var == 'et_median') %>%
+        mutate(year = year(datetime)) %>%
+        group_by(site_code, year) %>%
+        summarize(et_mean = mean(val, na.rm = TRUE),
+                  et_sd_year = sd(val, na.rm = TRUE),
+                  .groups = 'drop') %>%
+        pivot_longer(cols = c('et_mean', 'et_sd_year'),
+                     names_to = 'var',
+                     values_to = 'val')
+
+    temp_sd <- final %>%
+        filter(var == 'et_sd') %>%
+        mutate(year = year(datetime)) %>%
+        group_by(site_code, year) %>%
+        summarize(val = mean(val, na.rm = TRUE),
+                  .groups = 'drop') %>%
+        mutate(var = 'et_sd_space')
+
+    final_sum <- rbind(final_, temp_sd) %>%
+        select(year, site_code, var, val)
+
+    final <- final %>%
+        select(datetime, site_code, var, val)
+
+    final <- append_unprod_prefix(final, prodname_ms)
+    final_sum <- append_unprod_prefix(final_sum, prodname_ms)
+
+    final <- bind_older_ws_traits(final)
+    final_sum <- bind_older_ws_traits(final_sum)
+
+    save_general_files(final_file = final_sum,
+                       raw_file = final,
+                       domain_dir = glue('data/{network}/{domain}/ws_traits/et/'))
+
+    return()
+}
+
+#pdsi; spei30d: STATUS=READY
+#. handle_errors
+process_3_ms828 <- function(network, domain, prodname_ms, site_code, boundaries){
+
+    prodname <- prodname_from_prodname_ms(prodname_ms)
+
+    final <- try(get_gee_standard(network = network,
+                                  domain = domain,
+                                  gee_id = 'GRIDMET/DROUGHT',
+                                  band = prodname,
+                                  prodname = prodname,
+                                  rez = 4638.3,
+                                  site_boundary = boundaries,
+                                  batch = TRUE,
+                                  contiguous_us = TRUE))
+
+    if(is.null(final)){
+        return(generate_ms_exception(glue('No data were retrived for {site_code}')))
+    }
+
+    if(inherits(final, 'try-error')){
+        return(generate_ms_err(glue('error in retrieving {site_code}')))
+    }
+
+    final <- final$table %>%
+        mutate(datetime = substr(datetime, 0, 8)) %>%
+        mutate(datetime = ymd(datetime))
+
+    if(all(is.na(final$val)) || all(final$val == 0)){
+        return(generate_ms_exception(glue('No data were retrived for {site_code}')))
+    }
+
+    final_ <- final %>%
+        filter(var == paste0(prodname, '_median')) %>%
+        mutate(year = year(datetime)) %>%
+        group_by(site_code, year) %>%
+        summarize(!!paste0(prodname, '_mean') := mean(val, na.rm = TRUE),
+                  !!paste0(prodname, '_sd_year') := sd(val, na.rm = TRUE),
+                  .groups = 'drop') %>%
+        pivot_longer(cols = c(paste0(prodname, '_mean'),
+                              paste0(prodname, '_sd_year')),
+                     names_to = 'var',
+                     values_to = 'val')
+
+    temp_sd <- final %>%
+        filter(var == paste0(prodname, '_sd')) %>%
+        mutate(year = year(datetime)) %>%
+        group_by(site_code, year) %>%
+        summarize(val = mean(val, na.rm = TRUE),
+                  .groups = 'drop') %>%
+        mutate(var = paste0(prodname, '_sd_space'))
+
+    final_sum <- rbind(final_, temp_sd) %>%
+        select(year, site_code, var, val)
+
+    final <- final %>%
+        select(datetime, site_code, var, val)
+
+    final <- append_unprod_prefix(final, prodname_ms)
+    final_sum <- append_unprod_prefix(final_sum, prodname_ms)
+
+    final <- bind_older_ws_traits(final)
+    final_sum <- bind_older_ws_traits(final_sum)
+
+    save_general_files(final_file = final_sum,
+                       raw_file = final,
+                       domain_dir = glue('data/{network}/{domain}/ws_traits/{prodname}/'))
+
+    return()
 }
