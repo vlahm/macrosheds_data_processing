@@ -66,6 +66,7 @@ process_0_3200 <- function(set_details, network, domain){
 #. handle_errors
 process_1_700 <- function(network, domain, prodname_ms, site_code, component){
 
+  browser()
     rawfile = glue('data/{n}/{d}/raw/{p}/{s}/{c}.csv',
                    n=network, d=domain, p=prodname_ms, s=site_code, c=component)
 
@@ -101,7 +102,8 @@ process_1_700 <- function(network, domain, prodname_ms, site_code, component){
     d <- mutate(d,
                 val = ifelse(var == 'GN_pH' & val > 14, NA, val))
 
-    conv_units <- c('PO4_P', 'SO4', 'TP', 'DO', 'Ca', 'HCO3', 'K', 'Mg', 'Na')
+    # conv_units <- c('PO4_P', 'SO4', 'TP', 'DO', 'Ca', 'HCO3', 'K', 'Mg', 'Na')
+    conv_units <- c('Ca', 'HCO3', 'K', 'Mg', 'Na')
 
     d <- ms_conversions_(
         d,

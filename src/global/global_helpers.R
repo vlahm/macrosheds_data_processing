@@ -20141,6 +20141,11 @@ get_ldas_precip <- function(lat, lon, startdate = NULL, enddate = NULL){
     #enddate = either a date object or a string in YYYY-MM-DD format
 
     #returns data.frame of daily precip
+    startdate <- as.Date(startdate)
+    enddate <- as.Date(enddate)
+
+    message('this probably doesnt work anymore. update API calls to use v2 products here: https://disc.gsfc.nasa.gov/information/tools?title=Hydrology%20Data%20Rods. check streampulse code for air pressure example')
+    browser()
 
     # if(startdate < as.Date('1979-01-01')) stop('use load_prism_precip for this (not yet implemented)')
     if(enddate < as.Date('1979-01-01')){
@@ -20152,12 +20157,10 @@ get_ldas_precip <- function(lat, lon, startdate = NULL, enddate = NULL){
     if(startdate < as.Date('1979-01-01')){
         logwarn('precip gaps before 1979 (get_ldas_precip will leave empty)',
                 logger = logger_module)
-        startdate <- '1979-01-02'
+        startdate <- as.Date('1979-01-02')
     }
 
     ##prep
-    startdate <- as.Date(startdate)
-    enddate <- as.Date(enddate)
     if(startdate == enddate) enddate <- enddate + lubridate::days(1)
     startdate <- as.character(startdate)
     enddate <- as.character(enddate)
