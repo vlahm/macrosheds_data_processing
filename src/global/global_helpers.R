@@ -2324,7 +2324,7 @@ ms_cast_and_reflag <- function(d,
     return(d)
 }
 
-ms_conversions__ <- function(d,
+ms_conversions_ <- function(d,
                            keep_molecular,
                            convert_units_from,
                            convert_units_to,
@@ -5104,7 +5104,7 @@ ms_derive <- function(network = domain,
     create_portal_links(network = network,
                         domain = domain)
     #for removing derelicts from portal/data
-    #find portal/data ! -path './general/*' ! -path '*/documentation/*' ! -path '*flux_inst_scaled*' -type f -links 1 -delete
+    # find portal/data ! -path '*/general/*' ! -path '*/documentation/*' ! -path '*flux_inst_scaled*' -type f -links 1 -delete
 }
 
 import_ancestor_env <- function(pos = 1){
@@ -10622,8 +10622,11 @@ ms_write_confdata <- function(x,
                   kd = paste(known_datasets, collapse = '", "')))
     }
 
-    if(which_dataset == 'site_data' && ! any(site_data$in_workflow == 0)){
-        stop('something is still causing in_workflow == 0 sites to be removed from site_data')
+    # if(which_dataset == 'site_data' && ! any(site_data$in_workflow == 0)){
+    #     stop('something is still causing in_workflow == 0 sites to be removed from site_data')
+    # }
+    if(which_dataset == 'site_data' && overwrite){
+        x <- bind_rows(x, not_in_workflow)
     }
 
     type_string <- case_when(
@@ -10748,6 +10751,10 @@ ms_write_confdata <- function(x,
 
     } else {
         stop('to_where must be either "local" or "remote"')
+    }
+
+    if(which_dataset == 'site_data'){
+        dset <- filter(dset, as.logical(in_workflow))
     }
 
     assign(x = which_dataset,
@@ -18789,7 +18796,7 @@ standardize_detection_limits <- function(dls, vs, update_on_gdrive = FALSE){
 
     core_ <- function(dl_set, keep_molecular = NULL){
 
-        #prepare detlim data to be used with ms_conversions__
+        # prepare detlim data to be used with ms_conversions_
         dls_ms_format <- dl_set %>%
             mutate(datetime = as.POSIXct('2000-01-01 00:00:00', tz = 'UTC'),
                    # site_code = 'a',
@@ -18803,7 +18810,7 @@ standardize_detection_limits <- function(dls, vs, update_on_gdrive = FALSE){
         names(to_units) <- dl_set$variable_original
 
         #convert detlims to canonical units
-        dls_conv <- ms_conversions__(d = dls_ms_format,
+        dls_conv <- ms_conversions_(d = dls_ms_format,
                                    convert_units_from = from_units,
                                    convert_units_to = to_units,
                                    keep_molecular = keep_molecular,
